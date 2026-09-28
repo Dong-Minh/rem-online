@@ -1,0 +1,25 @@
+================================================================================
+THƯ MỤC LƯU TRỮ HÌNH ẢNH SẢN PHẨM RÈM CỬA (PRODUCT IMAGES REPOSITORY)
+Đường dẫn: public/images/products/ và storage/app/public/products/
+================================================================================
+
+1. HƯỚNG DẪN LƯU VÀ QUẢN LÝ ẢNH RÈM KHI TẠO SẢN PHẨM MỚI:
+   - Bạn có thể copy trực tiếp các file ảnh chụp rèm của bạn vào thư mục này.
+   - Định dạng ảnh hỗ trợ tốt nhất: .jpg, .jpeg, .png, .webp
+   - Kích thước khuyến nghị: 
+     + Tỷ lệ 1:1 (Vuông): 800x800px hoặc 1000x1000px (Chuẩn hiển thị danh sách sản phẩm)
+     + Tỷ lệ 4:3 hoặc 16:9: 1200x800px (Chuẩn hiển thị Banner / Chi tiết sản phẩm)
+   - Dung lượng tối ưu: Dưới 2MB / mỗi ảnh để website tải nhanh mượt mà.
+
+2. CÁCH ĐẶT TÊN FILE ẢNH CHUẨN SEO:
+   - Đặt tên không dấu, dùng dấu gạch ngang nối từ, ví dụ:
+     + rem-vai-gam-bi-phong-khach.jpg
+     + rem-cau-vong-han-quoc-modero.jpg
+     + rem-cuon-van-phong-chong-nang.jpg
+     + rem-roman-phong-ngu.jpg
+     + rem-go-tu-nhien-sangkien.jpg
+
+3. CÁCH SỬ DỤNG TRÊN WEBSITE:
+   - Cách 1 (Khuyên dùng): Đăng nhập trang Quản Trị (Admin) -> Vào mục "Sản Phẩm" -> Bấm "Thêm Sản Phẩm Mới" -> Nhấn nút "Chọn tệp ảnh" để tải trực tiếp từ máy tính lên. Hệ thống sẽ tự động tối ưu và lưu vào thư mục này.
+   - Cách 2: Copy ảnh vào thư mục này, sau đó khi viết Seeder hoặc nhập dữ liệu, điền đường dẫn dạng: products/ten-file-anh.jpg
+================================================================================
