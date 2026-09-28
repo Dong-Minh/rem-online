@@ -54,16 +54,18 @@ su-exec www-data php artisan storage:link 2>/dev/null || true
 
 su-exec www-data php artisan config:cache
 
-case "${RUN_MIGRATIONS:-true}" in
-    true) su-exec www-data php artisan migrate --force --no-interaction ;;
-    false) ;;
-    *) echo "RUN_MIGRATIONS must be true or false" >&2; exit 1 ;;
+NORM_RUN_MIGRATIONS=$(echo "${RUN_MIGRATIONS:-true}" | tr -d '"' | tr -d "'" | tr '[:upper:]' '[:lower:]' | xargs)
+case "$NORM_RUN_MIGRATIONS" in
+    true|1|yes) su-exec www-data php artisan migrate --force --no-interaction ;;
+    false|0|no|"") ;;
+    *) echo "RUN_MIGRATIONS must be true or false (got: $RUN_MIGRATIONS)" >&2; exit 1 ;;
 esac
 
-case "${RUN_SEEDERS:-false}" in
-    true) su-exec www-data php artisan db:seed --force --no-interaction ;;
-    false) ;;
-    *) echo "RUN_SEEDERS must be true or false" >&2; exit 1 ;;
+NORM_RUN_SEEDERS=$(echo "${RUN_SEEDERS:-false}" | tr -d '"' | tr -d "'" | tr '[:upper:]' '[:lower:]' | xargs)
+case "$NORM_RUN_SEEDERS" in
+    true|1|yes) su-exec www-data php artisan db:seed --force --no-interaction ;;
+    false|0|no|"") ;;
+    *) echo "RUN_SEEDERS must be true or false (got: $RUN_SEEDERS)" >&2; exit 1 ;;
 esac
 
 su-exec www-data php artisan route:cache
