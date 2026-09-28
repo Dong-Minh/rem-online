@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => rtrim(trim((string) env('APP_URL', 'http://localhost'), " \"'"), '/'),
 
     /*
     |--------------------------------------------------------------------------

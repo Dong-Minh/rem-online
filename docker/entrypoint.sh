@@ -29,7 +29,8 @@ if (( $# > 0 )); then
 fi
 
 : "${APP_KEY:?Set a persistent APP_KEY before starting the application}"
-: "${APP_URL:?Set APP_URL to the public HTTPS address}"
+APP_URL=$(echo "${APP_URL:-http://localhost}" | tr -d '"' | tr -d "'" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+export APP_URL
 export PORT="${PORT:-10000}"
 
 if [[ ! "$PORT" =~ ^[0-9]{1,5}$ ]] || (( 10#$PORT < 1 || 10#$PORT > 65535 )); then
