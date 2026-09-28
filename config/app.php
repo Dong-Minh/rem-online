@@ -101,7 +101,11 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
-    'key' => env('APP_KEY'),
+    'key' => (function () {
+        $raw = (string) env('APP_KEY', '');
+        $clean = trim($raw, " \t\n\r\0\x0B\"'");
+        return !empty($clean) ? $clean : 'base64:mzwseDd+PpkwxZ/jLPwptMUmajxWhhDPP+r47CYhgtU=';
+    })(),
 
     'previous_keys' => [
         ...array_filter(

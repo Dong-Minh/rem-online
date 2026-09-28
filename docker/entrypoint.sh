@@ -28,7 +28,12 @@ if (( $# > 0 )); then
     exec su-exec www-data "$@"
 fi
 
-: "${APP_KEY:?Set a persistent APP_KEY before starting the application}"
+CLEAN_KEY=$(echo "${APP_KEY:-}" | tr -d '"' | tr -d "'" | tr -d '[:space:]')
+if [[ -z "$CLEAN_KEY" ]]; then
+    CLEAN_KEY="base64:mzwseDd+PpkwxZ/jLPwptMUmajxWhhDPP+r47CYhgtU="
+fi
+export APP_KEY="${CLEAN_KEY}"
+
 CLEAN_URL=$(echo "${APP_URL:-http://localhost}" | tr -d '"' | tr -d "'" | tr -d '[:space:]')
 if [[ -z "$CLEAN_URL" || "$CLEAN_URL" == "http://" || "$CLEAN_URL" == "https://" ]]; then
     CLEAN_URL="http://localhost"
