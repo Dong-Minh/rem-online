@@ -52,7 +52,11 @@ return [
     |
     */
 
-    'url' => rtrim(trim((string) env('APP_URL', 'http://localhost'), " \"'"), '/'),
+    'url' => (function () {
+        $raw = (string) env('APP_URL', 'http://localhost');
+        $clean = trim(preg_replace('/\s+/', '', $raw), " \t\n\r\0\x0B\"'");
+        return filter_var($clean, FILTER_VALIDATE_URL) ? rtrim($clean, '/') : 'http://localhost';
+    })(),
 
     /*
     |--------------------------------------------------------------------------

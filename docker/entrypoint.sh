@@ -29,8 +29,13 @@ if (( $# > 0 )); then
 fi
 
 : "${APP_KEY:?Set a persistent APP_KEY before starting the application}"
-APP_URL=$(echo "${APP_URL:-http://localhost}" | tr -d '"' | tr -d "'" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-export APP_URL
+CLEAN_URL=$(echo "${APP_URL:-http://localhost}" | tr -d '"' | tr -d "'" | tr -d '[:space:]')
+if [[ -z "$CLEAN_URL" || "$CLEAN_URL" == "http://" || "$CLEAN_URL" == "https://" ]]; then
+    CLEAN_URL="http://localhost"
+elif [[ ! "$CLEAN_URL" =~ ^https?:// ]]; then
+    CLEAN_URL="https://${CLEAN_URL}"
+fi
+export APP_URL="${CLEAN_URL}"
 export PORT="${PORT:-10000}"
 
 if [[ ! "$PORT" =~ ^[0-9]{1,5}$ ]] || (( 10#$PORT < 1 || 10#$PORT > 65535 )); then
