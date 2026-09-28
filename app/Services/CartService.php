@@ -16,13 +16,20 @@ class CartService
      */
     public function getCart()
     {
-        if (Auth::check()) {
-            return Cart::firstOrCreate(['user_id' => Auth::id()]);
-        }
+        try {
+            if (Auth::check()) {
+                return Cart::firstOrCreate(['user_id' => Auth::id()]);
+            }
 
-        // Với khách vãng lai, lưu session_id
-        $sessionId = Session::getId();
-        return Cart::firstOrCreate(['session_id' => $sessionId]);
+            // Với khách vãng lai, lưu session_id
+            $sessionId = Session::getId();
+            if (empty($sessionId)) {
+                return null;
+            }
+            return Cart::firstOrCreate(['session_id' => $sessionId]);
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
@@ -113,8 +120,15 @@ class CartService
      */
     public function getItemCount(): int
     {
-        $cart = $this->getCart();
-        return (int) CartItem::where('cart_id', $cart->id)->sum('quantity');
+        try {
+            $cart = $this->getCart();
+            if (!$cart) {
+                return 0;
+            }
+            return (int) CartItem::where('cart_id', $cart->id)->sum('quantity');
+        } catch (\Throwable $e) {
+            return 0;
+        }
     }
 
     /**
