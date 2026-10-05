@@ -87,70 +87,7 @@
                     <div class="mb-3">
                         <label for="province_select" class="form-label small fw-bold">Tỉnh / Thành phố <span class="text-danger">*</span></label>
                         <select class="form-select @error('to_province_id') is-invalid @enderror" id="province_select" name="to_province_id" required>
-                            <option value="">-- Chọn Tỉnh / Thành phố --</option>
-                            <option value="201" data-name="Hà Nội" {{ old('to_province_id') == 201 ? 'selected' : '' }}>Hà Nội</option>
-                            <option value="202" data-name="Hồ Chí Minh" {{ old('to_province_id') == 202 ? 'selected' : '' }}>Hồ Chí Minh</option>
-                            <option value="203" data-name="Đà Nẵng" {{ old('to_province_id') == 203 ? 'selected' : '' }}>Đà Nẵng</option>
-                            <option value="204" data-name="Hải Phòng" {{ old('to_province_id') == 204 ? 'selected' : '' }}>Hải Phòng</option>
-                            <option value="205" data-name="Cần Thơ" {{ old('to_province_id') == 205 ? 'selected' : '' }}>Cần Thơ</option>
-                            <option value="206" data-name="An Giang">An Giang</option>
-                            <option value="207" data-name="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
-                            <option value="208" data-name="Bắc Giang">Bắc Giang</option>
-                            <option value="209" data-name="Bắc Kạn">Bắc Kạn</option>
-                            <option value="210" data-name="Bạc Liêu">Bạc Liêu</option>
-                            <option value="211" data-name="Bắc Ninh">Bắc Ninh</option>
-                            <option value="212" data-name="Bến Tre">Bến Tre</option>
-                            <option value="213" data-name="Bình Định">Bình Định</option>
-                            <option value="214" data-name="Bình Dương">Bình Dương</option>
-                            <option value="215" data-name="Bình Phước">Bình Phước</option>
-                            <option value="216" data-name="Bình Thuận">Bình Thuận</option>
-                            <option value="217" data-name="Cà Mau">Cà Mau</option>
-                            <option value="218" data-name="Cao Bằng">Cao Bằng</option>
-                            <option value="219" data-name="Đắk Lắk">Đắk Lắk</option>
-                            <option value="220" data-name="Đắk Nông">Đắk Nông</option>
-                            <option value="221" data-name="Điện Biên">Điện Biên</option>
-                            <option value="222" data-name="Đồng Nai">Đồng Nai</option>
-                            <option value="223" data-name="Đồng Tháp">Đồng Tháp</option>
-                            <option value="224" data-name="Gia Lai">Gia Lai</option>
-                            <option value="225" data-name="Hà Giang">Hà Giang</option>
-                            <option value="226" data-name="Hà Nam">Hà Nam</option>
-                            <option value="227" data-name="Hà Tĩnh">Hà Tĩnh</option>
-                            <option value="228" data-name="Hải Dương">Hải Dương</option>
-                            <option value="229" data-name="Hậu Giang">Hậu Giang</option>
-                            <option value="230" data-name="Hòa Bình">Hòa Bình</option>
-                            <option value="231" data-name="Hưng Yên">Hưng Yên</option>
-                            <option value="232" data-name="Khánh Hòa">Khánh Hòa</option>
-                            <option value="233" data-name="Kiên Giang">Kiên Giang</option>
-                            <option value="234" data-name="Kon Tum">Kon Tum</option>
-                            <option value="235" data-name="Lai Châu">Lai Châu</option>
-                            <option value="236" data-name="Lâm Đồng">Lâm Đồng</option>
-                            <option value="237" data-name="Lạng Sơn">Lạng Sơn</option>
-                            <option value="238" data-name="Lào Cai">Lào Cai</option>
-                            <option value="239" data-name="Long An">Long An</option>
-                            <option value="240" data-name="Nam Định">Nam Định</option>
-                            <option value="241" data-name="Nghệ An">Nghệ An</option>
-                            <option value="242" data-name="Ninh Bình">Ninh Bình</option>
-                            <option value="243" data-name="Ninh Thuận">Ninh Thuận</option>
-                            <option value="244" data-name="Phú Thọ">Phú Thọ</option>
-                            <option value="245" data-name="Phú Yên">Phú Yên</option>
-                            <option value="246" data-name="Quảng Bình">Quảng Bình</option>
-                            <option value="247" data-name="Quảng Nam">Quảng Nam</option>
-                            <option value="248" data-name="Quảng Ngãi">Quảng Ngãi</option>
-                            <option value="249" data-name="Quảng Ninh">Quảng Ninh</option>
-                            <option value="250" data-name="Quảng Trị">Quảng Trị</option>
-                            <option value="251" data-name="Sóc Trăng">Sóc Trăng</option>
-                            <option value="252" data-name="Sơn La">Sơn La</option>
-                            <option value="253" data-name="Tây Ninh">Tây Ninh</option>
-                            <option value="254" data-name="Thái Bình">Thái Bình</option>
-                            <option value="255" data-name="Thái Nguyên">Thái Nguyên</option>
-                            <option value="256" data-name="Thanh Hóa">Thanh Hóa</option>
-                            <option value="257" data-name="Thừa Thiên Huế">Thừa Thiên Huế</option>
-                            <option value="258" data-name="Tiền Giang">Tiền Giang</option>
-                            <option value="259" data-name="Trà Vinh">Trà Vinh</option>
-                            <option value="260" data-name="Tuyên Quang">Tuyên Quang</option>
-                            <option value="261" data-name="Vĩnh Long">Vĩnh Long</option>
-                            <option value="262" data-name="Vĩnh Phúc">Vĩnh Phúc</option>
-                            <option value="263" data-name="Yên Bái">Yên Bái</option>
+                            <option value="">-- Đang tải danh sách Tỉnh/Thành từ GHN API... --</option>
                         </select>
                     </div>
 
@@ -520,9 +457,29 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 2. Danh sách 63 Tỉnh/Thành phố đã được nạp sẵn trực tiếp từ Server Blade HTML (Không lo trễ mạng)
-
-    // 3. Khi chọn Tỉnh -> Tải Quận/Huyện
+    // 2. Tải danh sách 63 Tỉnh/Thành phố trực tiếp từ GHN API
+    function loadProvinces() {
+        provinceSelect.innerHTML = '<option value="">-- Đang tải danh sách Tỉnh/Thành từ GHN API... --</option>';
+        fetch("{{ route('locations.provinces') }}")
+            .then(res => res.json())
+            .then(res => {
+                if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+                    let sortedProvinces = res.data.slice().sort((a, b) => (a.ProvinceName || '').localeCompare(b.ProvinceName || '', 'vi'));
+                    let options = '<option value="">-- Chọn Tỉnh / Thành phố (GHN) --</option>';
+                    sortedProvinces.forEach(p => {
+                        options += `<option value="${p.ProvinceID}" data-name="${p.ProvinceName}">${p.ProvinceName}</option>`;
+                    });
+                    provinceSelect.innerHTML = options;
+                } else {
+                    provinceSelect.innerHTML = '<option value="">-- Lỗi tải danh sách Tỉnh/Thành từ GHN --</option>';
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi tải Tỉnh/Thành GHN:", err);
+                provinceSelect.innerHTML = '<option value="">-- Lỗi kết nối GHN API --</option>';
+            });
+    }
+    loadProvinces();
     provinceSelect.addEventListener('change', function () {
         const selectedOption = this.options[this.selectedIndex];
         provinceNameInput.value = selectedOption.getAttribute('data-name') || '';
