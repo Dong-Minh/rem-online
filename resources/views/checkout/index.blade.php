@@ -458,24 +458,43 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==========================================
-    // 2. TẢI TỈNH / THÀNH PHỐ TỪ GHN
+    // 2. TẢI TỈNH / THÀNH PHỐ TỪ GHN (KÈM FALLBACK CLIENT)
     // ==========================================
+    const defaultProvinces = [
+        {ProvinceID: 201, ProvinceName: "Hà Nội"},
+        {ProvinceID: 202, ProvinceName: "Hồ Chí Minh"},
+        {ProvinceID: 203, ProvinceName: "Đà Nẵng"},
+        {ProvinceID: 204, ProvinceName: "Hải Phòng"},
+        {ProvinceID: 205, ProvinceName: "Cần Thơ"},
+        {ProvinceID: 208, ProvinceName: "Bắc Giang"},
+        {ProvinceID: 211, ProvinceName: "Bắc Ninh"},
+        {ProvinceID: 214, ProvinceName: "Bình Dương"},
+        {ProvinceID: 222, ProvinceName: "Đồng Nai"},
+        {ProvinceID: 230, ProvinceName: "Hòa Bình"},
+        {ProvinceID: 249, ProvinceName: "Quảng Ninh"},
+        {ProvinceID: 256, ProvinceName: "Thanh Hóa"}
+    ];
+
+    function renderProvinces(provinces) {
+        let options = '<option value="">-- Chọn Tỉnh / Thành phố --</option>';
+        provinces.forEach(p => {
+            options += `<option value="${p.ProvinceID}" data-name="${p.ProvinceName}">${p.ProvinceName}</option>`;
+        });
+        provinceSelect.innerHTML = options;
+    }
+
     fetch("{{ route('locations.provinces') }}")
         .then(res => res.json())
         .then(res => {
-            if (res.data) {
-                let options = '<option value="">-- Chọn Tỉnh / Thành phố --</option>';
-                res.data.forEach(p => {
-                    options += `<option value="${p.ProvinceID}" data-name="${p.ProvinceName}">${p.ProvinceName}</option>`;
-                });
-                provinceSelect.innerHTML = options;
+            if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+                renderProvinces(res.data);
             } else {
-                provinceSelect.innerHTML = '<option value="">-- Không tải được tỉnh/thành --</option>';
+                renderProvinces(defaultProvinces);
             }
         })
         .catch(err => {
-            console.error("Lỗi load tỉnh thành:", err);
-            provinceSelect.innerHTML = '<option value="">-- Lỗi kết nối GHN API --</option>';
+            console.warn("Dùng fallback tỉnh thành:", err);
+            renderProvinces(defaultProvinces);
         });
 
     // 3. Khi chọn Tỉnh -> Tải Quận/Huyện

@@ -53,9 +53,12 @@ return [
     */
 
     'url' => (function () {
-        $raw = (string) env('APP_URL', 'http://localhost');
+        if (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'onrender.com')) {
+            return 'https://' . $_SERVER['HTTP_HOST'];
+        }
+        $raw = (string) env('APP_URL', 'https://rem-online.onrender.com');
         $clean = trim(preg_replace('/\s+/', '', $raw), " \t\n\r\0\x0B\"'");
-        return filter_var($clean, FILTER_VALIDATE_URL) ? rtrim($clean, '/') : 'http://localhost';
+        return filter_var($clean, FILTER_VALIDATE_URL) ? rtrim($clean, '/') : 'https://rem-online.onrender.com';
     })(),
 
     /*
