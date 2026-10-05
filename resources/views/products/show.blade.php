@@ -102,18 +102,6 @@
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="text-muted small">Mã SKU: <strong class="text-dark font-monospace">{{ $product->sku }}</strong></span>
-                        @auth
-                            <form method="POST" action="{{ route('wishlist.toggle', $product) }}" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-0 d-flex align-items-center justify-content-center shadow-none" style="width: 32px; height: 32px;" title="{{ $product->isWishlistedBy(Auth::user()) ? 'Bỏ thích' : 'Lưu yêu thích' }}">
-                                    <i class="bi bi-heart{{ $product->isWishlistedBy(Auth::user()) ? '-fill text-danger' : '' }}"></i>
-                                </button>
-                            </form>
-                        @else
-                            <a href="{{ route('login') }}" class="btn btn-sm btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center shadow-none" style="width: 32px; height: 32px;" title="Đăng nhập để lưu yêu thích">
-                                <i class="bi bi-heart"></i>
-                            </a>
-                        @endauth
                     </div>
                 </div>
 

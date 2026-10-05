@@ -60,7 +60,7 @@ class RegisteredUserController extends Controller
         // Gộp giỏ hàng session (nếu có chọn trước đó) vào tài khoản vừa tạo
         app(\App\Services\CartService::class)->mergeSessionCartToUser($user);
 
-        // Chuyển hướng về trang intended (ví dụ trang /checkout nếu đang mua dở) hoặc Trang Chủ
-        return redirect()->intended(route('home'))->with('success', 'Đăng ký tài khoản thành công! Chào mừng ' . $user->name . ' đến với Rèm Online.');
+        // Yêu cầu người dùng xác thực email trước khi mua hàng
+        return redirect()->route('verification.notice')->with('success', 'Đăng ký tài khoản thành công! Vui lòng xác thực email của bạn để bắt đầu đặt may rèm.');
     }
 }

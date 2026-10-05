@@ -25,6 +25,10 @@ class CartController extends Controller
      */
     public function index()
     {
+        if (Auth::check() && !Auth::user()->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')->with('warning', 'Vui lòng xác thực email của bạn trước khi xem giỏ hàng và tiến hành mua hàng.');
+        }
+
         $cart = $this->cartService->getCart();
         $cartItems = $cart->items()->with(['product.categories', 'color'])->get();
         $subtotal = $this->cartService->getSubtotal();
@@ -42,6 +46,14 @@ class CartController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('warning', 'Vui lòng đăng nhập tài khoản để thêm sản phẩm vào giỏ hàng và đặt may.');
+        }
+
+        if (!Auth::user()->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')->with('warning', 'Bạn cần xác thực email trước khi thêm sản phẩm vào giỏ hàng hoặc mua hàng. Vui lòng kiểm tra hộp thư email của bạn!');
+        }
+
         $product = Product::findOrFail($request->input('product_id'));
 
         $validated = $request->validate([

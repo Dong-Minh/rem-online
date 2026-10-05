@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.client')
 
 @section('title', 'Sổ Địa Chỉ Nhận Hàng — ' . config('app.name', 'Rèm Online'))
 
@@ -32,10 +32,6 @@
                     <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action px-4 py-3 border-0 d-flex align-items-center gap-3">
                         <i class="bi bi-bag-check text-muted fs-5"></i>
                         <span>Đơn Hàng Của Tôi</span>
-                    </a>
-                    <a href="{{ route('wishlist.index') }}" class="list-group-item list-group-item-action px-4 py-3 border-0 d-flex align-items-center gap-3">
-                        <i class="bi bi-heart text-muted fs-5"></i>
-                        <span>Rèm Yêu Thích</span>
                     </a>
                     <a href="{{ route('profile.addresses.index') }}" class="list-group-item list-group-item-action px-4 py-3 border-0 d-flex align-items-center gap-3 active bg-warning bg-opacity-10 text-dark fw-bold border-start border-4 border-warning">
                         <i class="bi bi-geo-alt-fill text-warning fs-5"></i>

@@ -259,36 +259,6 @@
             color: var(--primary-gold);
             padding-left: 4px;
         }
-
-        /* Pagination Styling & SVG Protection */
-        .pagination {
-            margin-bottom: 0;
-            display: flex;
-            gap: 4px;
-            align-items: center;
-        }
-        .pagination svg, nav svg {
-            width: 1rem !important;
-            height: 1rem !important;
-            max-width: 1rem !important;
-            max-height: 1rem !important;
-            display: inline-block;
-        }
-        .page-item .page-link {
-            border-radius: 6px;
-            color: #475569;
-            border: 1px solid #e2e8f0;
-            padding: 0.375rem 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .page-item.active .page-link {
-            background-color: var(--primary-gold);
-            border-color: var(--primary-gold);
-            color: #ffffff;
-            font-weight: 600;
-        }
     </style>
     @stack('styles')
 </head>
@@ -375,7 +345,6 @@
                                 @endif
                                 <li><a class="dropdown-item py-2" href="{{ route('dashboard') }}"><i class="bi bi-grid me-2 text-muted"></i> Tổng quan tài khoản</a></li>
                                 <li><a class="dropdown-item py-2" href="{{ route('orders.index') }}"><i class="bi bi-bag-check me-2 text-muted"></i> Đơn hàng của tôi</a></li>
-                                <li><a class="dropdown-item py-2" href="{{ route('wishlist.index') }}"><i class="bi bi-heart me-2 text-danger"></i> Rèm yêu thích</a></li>
                                 <li><a class="dropdown-item py-2" href="{{ route('profile.addresses.index') }}"><i class="bi bi-geo-alt me-2 text-muted"></i> Sổ địa chỉ nhận hàng</a></li>
                                 <li><a class="dropdown-item py-2" href="{{ route('profile.edit') }}"><i class="bi bi-person-gear me-2 text-muted"></i> Cài đặt tài khoản</a></li>
                                 <li><hr class="dropdown-divider"></li>
@@ -393,23 +362,6 @@
                         <li class="nav-item ms-lg-2">
                             <a href="{{ route('login') }}" class="btn btn-outline-gold me-2">Đăng Nhập</a>
                             <a href="{{ route('register') }}" class="btn btn-gold">Đăng Ký</a>
-                        </li>
-                    @endauth
-
-                    <!-- Wishlist Icon Button -->
-                    @auth
-                        <li class="nav-item ms-lg-2">
-                            <a href="{{ route('wishlist.index') }}" class="btn btn-light position-relative rounded-circle p-2 border" title="Xem danh sách rèm yêu thích">
-                                <i class="bi bi-heart fs-5 text-danger"></i>
-                                @php
-                                    $wishlistCount = auth()->user()->wishlists()->count();
-                                @endphp
-                                @if($wishlistCount > 0)
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
-                                        {{ $wishlistCount }}
-                                    </span>
-                                @endif
-                            </a>
                         </li>
                     @endauth
 

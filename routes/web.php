@@ -74,9 +74,9 @@ Route::get('/payment/momo/callback', [MomoController::class, 'callback'])->name(
 Route::get('/user/payment/momo/callback', [MomoController::class, 'callback'])->name('user.payment.momo.callback');
 
 // ==========================================
-// 3. THANH TOÁN (CHECKOUT) & ĐƠN HÀNG (YÊU CẦU ĐĂNG NHẬP)
+// 3. THANH TOÁN (CHECKOUT) & ĐƠN HÀNG (YÊU CẦU ĐĂNG NHẬP & XÁC THỰC EMAIL)
 // ==========================================
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/checkout', [OrderController::class, 'index'])->name('checkout.index');
     Route::post('/checkout/process', [OrderController::class, 'processPayment'])->name('checkout.process');
     Route::get('/orders', [OrderController::class, 'orderHistory'])->name('orders.index');
@@ -92,10 +92,6 @@ Route::middleware(['auth'])->group(function () {
     // Đánh giá sản phẩm
     Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
-    // Danh sách yêu thích (Wishlist)
-    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
-    Route::post('/wishlist/{product}/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
-
     // Sổ địa chỉ khách hàng (Address Book)
     Route::get('/profile/addresses', [AddressController::class, 'index'])->name('profile.addresses.index');
     Route::post('/profile/addresses', [AddressController::class, 'store'])->name('profile.addresses.store');
@@ -109,6 +105,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/user/chat/send', [UserChatController::class, 'send'])->name('user.chat.send');
     Route::get('/user/chat/messages', [UserChatController::class, 'getMessages'])->name('user.chat.messages');
 });
+
+// Chuyển hướng route wishlist cũ về trang chủ
+Route::get('/wishlist', function () {
+    return redirect()->route('home');
+})->name('wishlist.index');
 
 // ==========================================
 // 4. AUTHENTICATED CUSTOMER ROUTES
