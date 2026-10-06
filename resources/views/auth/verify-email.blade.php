@@ -52,7 +52,7 @@
     </div>
 
     <!-- KHU VỰC 2: FORM NHẬP MÃ OTP 6 SỐ -->
-    <form method="POST" action="{{ route('verification.otp') }}" class="mb-3">
+    <form method="POST" action="{{ url('/email/verify-otp') }}" class="mb-3">
         @csrf
         <div class="mb-3">
             <label for="otp" class="form-label small fw-bold text-dark text-center d-block">
@@ -80,7 +80,7 @@
 
     <!-- KHU VỰC 3: KÍCH HOẠT NHANH 1-CLICK & GỬI LẠI -->
     <div class="border-top pt-3 d-flex flex-column gap-2">
-        <form method="POST" action="{{ route('verification.instant') }}">
+        <form method="POST" action="{{ url('/email/verify-instant') }}">
             @csrf
             <button type="submit" class="btn btn-outline-success w-100 py-2 fw-semibold btn-sm">
                 <i class="bi bi-lightning-charge-fill me-1"></i> 🚀 Kích Hoạt Nhanh 1-Click (Bỏ qua OTP)
@@ -88,14 +88,14 @@
         </form>
 
         <div class="d-flex justify-content-between align-items-center mt-1">
-            <form method="POST" action="{{ route('verification.send') }}">
+            <form method="POST" action="{{ url('/email/verification-notification') }}">
                 @csrf
                 <button type="submit" class="btn btn-link text-decoration-none text-muted p-0 small">
                     <i class="bi bi-arrow-clockwise me-1"></i> Gửi lại mã mới
                 </button>
             </form>
 
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ url('/logout') }}">
                 @csrf
                 <button type="submit" class="btn btn-link text-decoration-none text-danger p-0 small">
                     <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
