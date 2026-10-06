@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\VoucherController as AdminVoucherController;
+use App\Http\Controllers\AIChatbotController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\HomeController;
@@ -55,6 +56,9 @@ Route::post('/vouchers/remove', [VoucherController::class, 'remove'])->name('vou
 // Đăng ký lịch hẹn khảo sát & đo đạc tận nhà
 Route::get('/dat-lich-khao-sat', [ConsultationController::class, 'create'])->name('consultations.create');
 Route::post('/consultations', [ConsultationController::class, 'store'])->name('consultations.store');
+
+// Trợ lý AI Chatbot Tư Vấn Rèm Tự Động (AI Shopping Assistant 24/7)
+Route::post('/api/ai-chat', [AIChatbotController::class, 'chat'])->name('ai.chat');
 
 // ==========================================
 // 2. GIAO HÀNG NHANH (GHN) API ROUTES

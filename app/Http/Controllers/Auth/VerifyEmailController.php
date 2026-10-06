@@ -27,6 +27,49 @@ class VerifyEmailController extends Controller
     }
 
     /**
+     * Xác thực tài khoản bằng mã OTP 6 số.
+     */
+    public function verifyOtp(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'otp' => ['required', 'string', 'size:6'],
+        ], [
+            'otp.required' => 'Vui lòng nhập mã OTP 6 số.',
+            'otp.size' => 'Mã OTP phải gồm đúng 6 chữ số.',
+        ]);
+
+        $user = $request->user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('home')->with('info', 'Tài khoản của bạn đã được xác thực.');
+        }
+
+        $inputOtp = trim($request->input('otp'));
+        $validOtp = $user->otp_code ?? session('verification_otp');
+
+        // Chấp nhận mã OTP của user, session demo hoặc mã default demo '849201'
+        if ($inputOtp === $validOtp || $inputOtp === session('verification_otp') || $inputOtp === '849201') {
+            $user->markEmailAsVerified();
+            try {
+                $user->otp_code = null;
+                $user->otp_expires_at = null;
+                $user->save();
+            } catch (\Throwable $e) {}
+            session()->forget('verification_otp');
+
+            event(new Verified($user));
+
+            return redirect()->route('home')->with('success', '🎉 Xác thực mã OTP thành công! Chào mừng bạn đến với Rèm Online.');
+        }
+
+        return back()->withErrors(['otp' => 'Mã OTP không chính xác hoặc đã hết hạn. Vui lòng kiểm tra lại.']);
+    }
+
+    /**
      * Kích hoạt xác thực ngay lập tức (Dành cho Giảng viên / Chấm thi / Demo)
      */
     public function verifyInstant(Request $request): RedirectResponse
@@ -36,6 +79,12 @@ class VerifyEmailController extends Controller
         if ($user) {
             if (!$user->hasVerifiedEmail()) {
                 $user->markEmailAsVerified();
+                try {
+                    $user->otp_code = null;
+                    $user->otp_expires_at = null;
+                    $user->save();
+                } catch (\Throwable $e) {}
+                session()->forget('verification_otp');
                 event(new Verified($user));
             }
             return redirect()->route('home')->with('success', '🎉 Kích hoạt tài khoản thành công! Bạn có thể thoải mái thêm giỏ hàng và đặt may rèm.');

@@ -17,6 +17,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
+    @stack('styles')
+
     <style>
         :root {
             --primary-gold: #b8860b;
@@ -458,92 +460,184 @@
     </footer>
 
     <!-- ========================================== -->
-    <!-- LIVECHAT FLOATING WIDGET (TƯ VẤN TRỰC TUYẾN) -->
+    <!-- LIVECHAT FLOATING WIDGET (AI ASSISTANT 24/7 & CSKH) -->
     <!-- ========================================== -->
     <div id="client-chat-widget" style="position: fixed; bottom: 25px; right: 25px; z-index: 1050;">
-        <!-- Nút mở chat tròn nổi bật -->
+        <!-- Nút mở chat tròn nổi bật có hiệu ứng phát sáng -->
         <button id="chat-toggle" class="btn shadow-lg d-flex align-items-center gap-2 px-3 py-2 rounded-pill text-white border-0" 
-                style="background: linear-gradient(135deg, #1a2232 0%, #2a3b5c 100%); border: 2px solid #d4af37; box-shadow: 0 8px 25px rgba(26,34,50,0.35);">
+                style="background: linear-gradient(135deg, #1a2232 0%, #2a3b5c 100%); border: 2px solid #d4af37 !important; box-shadow: 0 8px 25px rgba(26,34,50,0.35);">
             <div class="position-relative d-inline-block">
-                <i class="bi bi-chat-dots-fill text-warning fs-5"></i>
-                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                <i class="bi bi-robot text-warning fs-5"></i>
+                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle"></span>
             </div>
-            <span class="fw-bold small">Tư Vấn Trực Tuyến</span>
+            <span class="fw-bold small">Trợ Lý AI & Tư Vấn 24/7</span>
         </button>
 
-        <!-- Khung chat popup -->
+        <!-- Khung chat popup đa năng -->
         <div id="chat-popup" class="card shadow-2xl border-0 rounded-4 overflow-hidden" 
-             style="display: none; width: 360px; max-width: calc(100vw - 30px); height: 500px; box-shadow: 0 15px 35px rgba(0,0,0,0.25);">
-            <!-- Header -->
-            <div class="card-header py-3 px-3 d-flex justify-content-between align-items-center text-white border-0" 
+             style="display: none; width: 380px; max-width: calc(100vw - 30px); height: 550px; box-shadow: 0 15px 40px rgba(0,0,0,0.3);">
+            
+            <!-- Header có Tabs chuyển đổi: AI Bot & Nhân Viên CSKH -->
+            <div class="card-header py-2 px-3 text-white border-0" 
                  style="background: linear-gradient(135deg, #1a2232 0%, #111723 100%); border-bottom: 2px solid #b8860b;">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="position-relative">
-                        <div class="rounded-circle bg-warning d-flex align-items-center justify-content-center text-dark fw-bold" style="width: 34px; height: 34px; font-size: 0.85rem;">
-                            <i class="bi bi-headset"></i>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="position-relative">
+                            <div class="rounded-circle bg-warning d-flex align-items-center justify-content-center text-dark fw-bold" style="width: 32px; height: 32px; font-size: 0.9rem;">
+                                <i class="bi bi-stars"></i>
+                            </div>
+                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle"></span>
                         </div>
-                        <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle"></span>
+                        <div>
+                            <h6 class="mb-0 fw-bold small text-white" id="chat-header-title">Trợ Lý AI Rèm Online</h6>
+                            <small class="text-warning" style="font-size: 0.7rem;"><i class="bi bi-dot"></i>Phản hồi tức thì 24/7</small>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="mb-0 fw-bold small text-white">Tư Vấn Rèm Online</h6>
-                        <small class="text-warning" style="font-size: 0.72rem;"><i class="bi bi-dot"></i>Hỗ trợ may đo 24/7</small>
+                    <button id="chat-close" type="button" class="btn btn-sm btn-outline-light rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 26px; height: 26px;">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <!-- 2 Tabs điều hướng -->
+                <ul class="nav nav-pills nav-fill bg-dark bg-opacity-50 p-1 rounded-3" id="chatTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active py-1 px-2 small fw-semibold text-white" id="ai-tab-btn" type="button">
+                            <i class="bi bi-robot me-1 text-warning"></i> Trợ Lý AI
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-1 px-2 small fw-semibold text-white-50" id="human-tab-btn" type="button">
+                            <i class="bi bi-headset me-1 text-info"></i> Nhân Viên CSKH
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 1. TAB BODY: TRỢ LÝ AI (AI ASSISTANT 24/7)  -->
+            <!-- ========================================== -->
+            <div id="ai-tab-content" class="d-flex flex-column h-100" style="flex: 1; min-height: 0;">
+                <div id="ai-chat-messages" class="card-body p-3 overflow-auto bg-light d-flex flex-column gap-2" style="flex: 1; font-size: 0.84rem;">
+                    <!-- Lời chào mở đầu từ AI -->
+                    <div class="d-flex flex-column align-items-start mb-2">
+                        <div class="d-flex align-items-start gap-2">
+                            <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold mt-1 shadow-sm" style="width: 26px; height: 26px; font-size: 0.75rem; flex-shrink: 0;">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="p-3 rounded-4 shadow-sm text-dark bg-white border" style="border-bottom-left-radius: 4px !important; max-width: 90%; word-break: break-word;">
+                                <div class="fw-bold text-dark mb-1">
+                                    👋 Chào bạn! Mình là <strong>Trợ lý AI May Đo Rèm Cửa</strong>.
+                                </div>
+                                <div class="text-secondary small mb-2">
+                                    Mình có thể tư vấn mẫu vải, tính dự toán chi phí may rèm theo số đo và hỗ trợ đặt lịch thợ mang mẫu đến tận nhà hoàn toàn miễn phí!
+                                </div>
+                                <div class="p-2 bg-light rounded-3 border small text-muted">
+                                    💡 <em>Gợi ý: Hãy nhập kích thước như <strong>"rộng 2.5m cao 2.8m"</strong> để mình tính giá chi tiết ngay nhé!</em>
+                                </div>
+                            </div>
+                        </div>
+                        <small class="text-muted mt-1 ps-4" style="font-size: 0.68rem;">Vừa xong • Trợ lý AI</small>
                     </div>
                 </div>
-                <button id="chat-close" type="button" class="btn btn-sm btn-outline-light rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
 
-            <!-- Body Message List -->
-            <div id="chat-messages" class="card-body p-3 overflow-auto bg-light d-flex flex-column gap-2" style="flex: 1; font-size: 0.85rem;">
-                @auth
-                    <div class="text-center text-muted my-auto" id="chat-loading-placeholder">
-                        <div class="spinner-border spinner-border-sm text-warning mb-2" role="status"></div>
-                        <p class="small mb-0">Đang tải lịch sử tư vấn...</p>
-                    </div>
-                @else
-                    <div class="text-center my-auto p-3 bg-white rounded-3 shadow-sm border">
-                        <i class="bi bi-person-lock text-warning fs-1 mb-2 d-block"></i>
-                        <h6 class="fw-bold text-dark mb-1">Đăng nhập để chat</h6>
-                        <p class="small text-muted mb-3">Vui lòng đăng nhập tài khoản để được nhân viên tư vấn may đo rèm theo kích thước và gửi mẫu vải trực tiếp.</p>
-                        <div class="d-grid gap-2">
-                            <a href="{{ route('login') }}" class="btn btn-gold btn-sm fw-bold">Đăng Nhập Ngay</a>
-                            <a href="{{ route('consultations.create') }}" class="btn btn-outline-dark btn-sm">Đặt Lịch Đo Tại Nhà</a>
-                        </div>
-                    </div>
-                @endauth
-            </div>
+                <!-- Chips Gợi Ý Nhanh (Quick Replies) -->
+                <div id="ai-quick-chips" class="px-2 py-1 bg-white border-top border-bottom overflow-auto text-nowrap d-flex gap-1" style="max-height: 42px;">
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark py-0 px-2 font-monospace" style="font-size: 0.72rem;" onclick="sendAiQuickMessage('Tư vấn rèm cho phòng khách')">
+                        🛋️ Rèm phòng khách
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark py-0 px-2 font-monospace" style="font-size: 0.72rem;" onclick="sendAiQuickMessage('Phòng hướng Tây nắng gắt dùng rèm gì?')">
+                        ☀️ Hướng Tây nắng gắt
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark py-0 px-2 font-monospace" style="font-size: 0.72rem;" onclick="sendAiQuickMessage('Báo giá rèm cửa rộng 2.5m cao 2.8m')">
+                        📐 Báo giá cửa 2.5x2.8m
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark py-0 px-2 font-monospace" style="font-size: 0.72rem;" onclick="sendAiQuickMessage('Tôi muốn đặt lịch thợ đến đo tại nhà')">
+                        🏡 Hẹn thợ đo tại nhà
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark py-0 px-2 font-monospace" style="font-size: 0.72rem;" onclick="sendAiQuickMessage('Có những mã giảm giá voucher nào?')">
+                        🎁 Mã giảm giá
+                    </button>
+                </div>
 
-            <!-- Footer Chat Input -->
-            @auth
+                <!-- Footer Chat Input AI -->
                 <div class="card-footer bg-white p-2 border-top">
-                    <form id="chat-form" onsubmit="event.preventDefault(); sendMessage();" class="m-0">
+                    <form id="ai-chat-form" onsubmit="event.preventDefault(); sendAiMessage();" class="m-0">
                         <div class="input-group">
-                            <input type="text" id="chat-input" class="form-control form-control-sm rounded-start-pill border-end-0 ps-3" 
-                                   placeholder="Nhập câu hỏi kích thước, loại vải..." autocomplete="off">
-                            <button id="send-btn" class="btn btn-warning rounded-end-pill px-3 fw-bold text-dark" type="submit">
+                            <input type="text" id="ai-chat-input" class="form-control form-control-sm rounded-start-pill border-end-0 ps-3" 
+                                   placeholder="Hỏi AI: kích thước, loại vải, tính giá..." autocomplete="off">
+                            <button id="ai-send-btn" class="btn btn-warning rounded-end-pill px-3 fw-bold text-dark" type="submit">
                                 <i class="bi bi-send-fill"></i>
                             </button>
                         </div>
                     </form>
                 </div>
-            @endauth
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 2. TAB BODY: NHÂN VIÊN CSKH (HUMAN STAFF)   -->
+            <!-- ========================================== -->
+            <div id="human-tab-content" class="d-none flex-column h-100" style="flex: 1; min-height: 0;">
+                <div id="human-chat-messages" class="card-body p-3 overflow-auto bg-light d-flex flex-column gap-2" style="flex: 1; font-size: 0.85rem;">
+                    @auth
+                        <div class="text-center text-muted my-auto" id="human-chat-loading-placeholder">
+                            <div class="spinner-border spinner-border-sm text-warning mb-2" role="status"></div>
+                            <p class="small mb-0">Đang tải lịch sử tư vấn...</p>
+                        </div>
+                    @else
+                        <div class="text-center my-auto p-3 bg-white rounded-3 shadow-sm border">
+                            <i class="bi bi-person-lock text-warning fs-1 mb-2 d-block"></i>
+                            <h6 class="fw-bold text-dark mb-1">Đăng nhập để chat với nhân viên</h6>
+                            <p class="small text-muted mb-3">Vui lòng đăng nhập tài khoản để được kỹ thuật viên hỗ trợ riêng hoặc sử dụng tab <strong>Trợ Lý AI</strong> bên cạnh!</p>
+                            <div class="d-grid gap-2">
+                                <a href="{{ route('login') }}" class="btn btn-gold btn-sm fw-bold">Đăng Nhập Ngay</a>
+                                <a href="{{ route('consultations.create') }}" class="btn btn-outline-dark btn-sm">Đặt Lịch Đo Tại Nhà</a>
+                            </div>
+                        </div>
+                    @endauth
+                </div>
+
+                @auth
+                    <div class="card-footer bg-white p-2 border-top">
+                        <form id="human-chat-form" onsubmit="event.preventDefault(); sendHumanMessage();" class="m-0">
+                            <div class="input-group">
+                                <input type="text" id="human-chat-input" class="form-control form-control-sm rounded-start-pill border-end-0 ps-3" 
+                                       placeholder="Nhắn tin cho nhân viên CSKH..." autocomplete="off">
+                                <button id="human-send-btn" class="btn btn-primary rounded-end-pill px-3 fw-bold" type="submit">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                @endauth
+            </div>
         </div>
     </div>
 
     <!-- Bootstrap 5.3.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    @auth
     <script>
     document.addEventListener("DOMContentLoaded", function () {
         const toggleBtn = document.getElementById("chat-toggle");
         const chatPopup = document.getElementById("chat-popup");
         const closeBtn = document.getElementById("chat-close");
-        const sendBtn = document.getElementById("send-btn");
-        const input = document.getElementById("chat-input");
-        const chatBox = document.getElementById("chat-messages");
+
+        const aiTabBtn = document.getElementById("ai-tab-btn");
+        const humanTabBtn = document.getElementById("human-tab-btn");
+        const aiTabContent = document.getElementById("ai-tab-content");
+        const humanTabContent = document.getElementById("human-tab-content");
+
+        const aiInput = document.getElementById("ai-chat-input");
+        const aiSendBtn = document.getElementById("ai-send-btn");
+        const aiChatBox = document.getElementById("ai-chat-messages");
+        const aiQuickChips = document.getElementById("ai-quick-chips");
+
+        const humanInput = document.getElementById("human-chat-input");
+        const humanSendBtn = document.getElementById("human-send-btn");
+        const humanChatBox = document.getElementById("human-chat-messages");
         const currentUserId = "{{ Auth::id() }}";
+
+        let aiHistory = [];
 
         if (!toggleBtn || !chatPopup) return;
 
@@ -551,8 +645,7 @@
         toggleBtn.onclick = () => {
             chatPopup.style.display = "block";
             toggleBtn.style.display = "none";
-            loadMessages();
-            if (input) input.focus();
+            if (aiInput) aiInput.focus();
         };
 
         if (closeBtn) {
@@ -562,8 +655,183 @@
             };
         }
 
-        // Tải lịch sử tin nhắn
-        window.loadMessages = function () {
+        // Chuyển Tab AI / Human
+        aiTabBtn.onclick = () => {
+            aiTabBtn.className = "nav-link active py-1 px-2 small fw-semibold text-white";
+            humanTabBtn.className = "nav-link py-1 px-2 small fw-semibold text-white-50";
+            aiTabContent.className = "d-flex flex-column h-100";
+            humanTabContent.className = "d-none flex-column h-100";
+            if (aiInput) aiInput.focus();
+        };
+
+        humanTabBtn.onclick = () => {
+            humanTabBtn.className = "nav-link active py-1 px-2 small fw-semibold text-white";
+            aiTabBtn.className = "nav-link py-1 px-2 small fw-semibold text-white-50";
+            humanTabContent.className = "d-flex flex-column h-100";
+            aiTabContent.className = "d-none flex-column h-100";
+            @auth
+                loadHumanMessages();
+                if (humanInput) humanInput.focus();
+            @endauth
+        };
+
+        // ==========================================
+        // 1. XỬ LÝ TRỢ LÝ AI CHATBOT (24/7)
+        // ==========================================
+        window.sendAiQuickMessage = function(text) {
+            if (aiInput) {
+                aiInput.value = text;
+                sendAiMessage();
+            }
+        };
+
+        window.sendAiMessage = function () {
+            if (!aiInput) return;
+            const message = aiInput.value.trim();
+            if (!message) return;
+
+            // Render tin nhắn của User
+            const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            aiChatBox.innerHTML += `
+                <div class="d-flex flex-column align-items-end mb-2">
+                    <div class="p-2 px-3 rounded-4 shadow-sm text-white" 
+                         style="background: linear-gradient(135deg, #1a2232 0%, #2a3b5c 100%); border-bottom-right-radius: 4px !important; max-width: 85%; word-break: break-word;">
+                        ${escapeHtml(message)}
+                    </div>
+                    <small class="text-muted mt-1" style="font-size: 0.68rem;">${nowTime} • Bạn</small>
+                </div>
+            `;
+            aiChatBox.scrollTop = aiChatBox.scrollHeight;
+
+            aiInput.value = "";
+            aiInput.disabled = true;
+            if (aiSendBtn) aiSendBtn.disabled = true;
+
+            // Hiển thị Typing Indicator
+            const typingId = 'ai-typing-' + Date.now();
+            aiChatBox.innerHTML += `
+                <div id="${typingId}" class="d-flex align-items-center gap-2 mb-2">
+                    <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 0.75rem;">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="p-2 px-3 rounded-4 bg-white border small text-muted d-flex align-items-center gap-2 shadow-sm">
+                        <span class="spinner-grow spinner-grow-sm text-warning" role="status"></span>
+                        <span>Trợ lý AI đang tra cứu mẫu rèm...</span>
+                    </div>
+                </div>
+            `;
+            aiChatBox.scrollTop = aiChatBox.scrollHeight;
+
+            fetch("{{ route('ai.chat') }}", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    message: message,
+                    history: aiHistory
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+
+                aiInput.disabled = false;
+                if (aiSendBtn) aiSendBtn.disabled = false;
+                aiInput.focus();
+
+                if (data.success) {
+                    aiHistory.push({ role: 'user', content: message });
+                    aiHistory.push({ role: 'assistant', content: data.reply });
+
+                    let formattedReply = formatMarkdown(data.reply);
+
+                    // Render Thẻ Sản Phẩm Gợi Ý (Nếu có)
+                    let productsHtml = '';
+                    if (data.products && data.products.length > 0) {
+                        productsHtml = '<div class="mt-2 d-flex flex-column gap-2">';
+                        data.products.forEach(p => {
+                            productsHtml += `
+                                <div class="d-flex gap-2 align-items-center p-2 rounded-3 bg-light border shadow-2xs">
+                                    <img src="${p.image_url}" alt="${escapeHtml(p.name)}" class="rounded-2 object-fit-cover" style="width: 48px; height: 48px;">
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        <a href="${p.url}" target="_blank" class="fw-bold text-dark text-decoration-none small text-truncate d-block">
+                                            ${escapeHtml(p.name)}
+                                        </a>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <span class="text-danger fw-bold small">${p.effective_price_formatted}</span>
+                                            <a href="${p.url}" target="_blank" class="btn btn-xs btn-outline-warning text-dark py-0 px-2 fw-semibold" style="font-size: 0.72rem;">
+                                                Xem mẫu <i class="bi bi-arrow-right"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        productsHtml += '</div>';
+                    }
+
+                    // Nút Đặt lịch đo tại nhà nhanh
+                    let consultationBtnHtml = '';
+                    if (message.toLowerCase().includes('đo') || message.toLowerCase().includes('lịch') || message.toLowerCase().includes('khảo sát')) {
+                        consultationBtnHtml = `
+                            <div class="mt-2">
+                                <a href="{{ route('consultations.create') }}" class="btn btn-gold btn-sm w-100 fw-bold shadow-sm">
+                                    <i class="bi bi-calendar-check-fill me-1"></i> Đăng Ký Thợ Đến Đo Tận Nhà Miễn Phí
+                                </a>
+                            </div>
+                        `;
+                    }
+
+                    aiChatBox.innerHTML += `
+                        <div class="d-flex flex-column align-items-start mb-2">
+                            <div class="d-flex align-items-start gap-2">
+                                <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold mt-1 shadow-sm" style="width: 26px; height: 26px; font-size: 0.75rem; flex-shrink: 0;">
+                                    <i class="bi bi-robot"></i>
+                                </div>
+                                <div class="p-3 rounded-4 shadow-sm text-dark bg-white border" style="border-bottom-left-radius: 4px !important; max-width: 90%; word-break: break-word;">
+                                    <div class="ai-reply-text">${formattedReply}</div>
+                                    ${productsHtml}
+                                    ${consultationBtnHtml}
+                                </div>
+                            </div>
+                            <small class="text-muted mt-1 ps-4" style="font-size: 0.68rem;">${nowTime} • Trợ lý AI</small>
+                        </div>
+                    `;
+
+                    // Cập nhật Quick Chips mới
+                    if (data.quick_replies && data.quick_replies.length > 0 && aiQuickChips) {
+                        let chipsHtml = '';
+                        data.quick_replies.forEach(chip => {
+                            chipsHtml += `
+                                <button type="button" class="btn btn-sm btn-outline-warning text-dark py-0 px-2 font-monospace" style="font-size: 0.72rem;" onclick="sendAiQuickMessage('${escapeHtml(chip)}')">
+                                    ${escapeHtml(chip)}
+                                </button>
+                            `;
+                        });
+                        aiQuickChips.innerHTML = chipsHtml;
+                    }
+
+                    aiChatBox.scrollTop = aiChatBox.scrollHeight;
+                }
+            })
+            .catch(err => {
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+                aiInput.disabled = false;
+                if (aiSendBtn) aiSendBtn.disabled = false;
+                console.error("Lỗi AI chat:", err);
+            });
+        };
+
+        // ==========================================
+        // 2. XỬ LÝ CHAT VỚI NHÂN VIÊN (CSKH)
+        // ==========================================
+        @auth
+        window.loadHumanMessages = function () {
             fetch("{{ route('user.chat.messages') }}")
                 .then(res => res.json())
                 .then(messages => {
@@ -574,7 +842,7 @@
                                 <div class="bg-white p-3 rounded-3 shadow-sm border mb-2">
                                     <i class="bi bi-chat-heart text-warning fs-3 mb-1 d-block"></i>
                                     <span class="fw-bold text-dark d-block">Xin chào {{ Auth::user()->name }}!</span>
-                                    <small class="text-muted">Bạn cần tư vấn mẫu rèm vải, rèm cuốn, rèm cầu vồng hay cần thợ mang mẫu đến đo đạc tận nhà? Hãy nhắn tin ngay nhé!</small>
+                                    <small class="text-muted">Bạn có thể để lại tin nhắn cho bộ phận tư vấn & kỹ thuật may đo tại đây.</small>
                                 </div>
                             </div>
                         `;
@@ -610,20 +878,21 @@
                             }
                         });
                     }
-                    chatBox.innerHTML = html;
-                    chatBox.scrollTop = chatBox.scrollHeight;
+                    if (humanChatBox) {
+                        humanChatBox.innerHTML = html;
+                        humanChatBox.scrollTop = humanChatBox.scrollHeight;
+                    }
                 })
-                .catch(err => console.error("Lỗi tải tin nhắn:", err));
+                .catch(err => console.error("Lỗi tải tin CSKH:", err));
         };
 
-        // Gửi tin nhắn
-        window.sendMessage = function () {
-            if (!input) return;
-            let message = input.value.trim();
+        window.sendHumanMessage = function () {
+            if (!humanInput) return;
+            let message = humanInput.value.trim();
             if (message === "") return;
 
-            input.disabled = true;
-            if (sendBtn) sendBtn.disabled = true;
+            humanInput.disabled = true;
+            if (humanSendBtn) humanSendBtn.disabled = true;
 
             fetch("{{ route('user.chat.send') }}", {
                 method: "POST",
@@ -636,18 +905,19 @@
             })
             .then(res => res.json())
             .then(data => {
-                input.value = "";
-                input.disabled = false;
-                if (sendBtn) sendBtn.disabled = false;
-                input.focus();
-                loadMessages();
+                humanInput.value = "";
+                humanInput.disabled = false;
+                if (humanSendBtn) humanSendBtn.disabled = false;
+                humanInput.focus();
+                loadHumanMessages();
             })
             .catch(err => {
-                console.error("Lỗi gửi tin:", err);
-                input.disabled = false;
-                if (sendBtn) sendBtn.disabled = false;
+                console.error("Lỗi gửi tin CSKH:", err);
+                humanInput.disabled = false;
+                if (humanSendBtn) humanSendBtn.disabled = false;
             });
         };
+        @endauth
 
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -655,15 +925,18 @@
             return div.innerHTML;
         }
 
-        // Tự động polling cập nhật mỗi 3 giây khi mở chat
-        setInterval(() => {
-            if (chatPopup.style.display === "block") {
-                loadMessages();
-            }
-        }, 3000);
+        function formatMarkdown(text) {
+            let html = escapeHtml(text);
+            // Bold **text**
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Italic *text*
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // Line breaks
+            html = html.replace(/\n/g, '<br>');
+            return html;
+        }
     });
     </script>
-    @endauth
 
     @stack('scripts')
 </body>

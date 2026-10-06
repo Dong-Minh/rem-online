@@ -2,6 +2,31 @@
 
 @section('title', 'Thanh Toán & Tính Phí Giao Hàng GHN — Rèm Online')
 
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #leafletMapContainer {
+        height: 380px;
+        width: 100%;
+        border-radius: 0.75rem;
+        z-index: 1;
+    }
+    .leaflet-popup-content-wrapper {
+        border-radius: 0.5rem;
+        font-family: inherit;
+        font-size: 0.85rem;
+    }
+    .gps-pulse-btn {
+        animation: pulse-border 2s infinite;
+    }
+    @keyframes pulse-border {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+        70% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+</style>
+@endpush
+
 @section('content')
 <!-- Breadcrumb Header -->
 <div class="py-3 bg-light border-bottom mb-4">
@@ -80,7 +105,36 @@
                         <h5 class="fw-bold text-dark mb-0">
                             <i class="bi bi-geo-alt-fill text-danger me-2"></i>2. Địa Chỉ Nhận Hàng (Tích hợp GHN)
                         </h5>
-                        <span class="badge bg-danger-subtle text-danger small font-monospace">GHN API</span>
+                        <span class="badge bg-danger-subtle text-danger small font-monospace">GHN API & GPS</span>
+                    </div>
+
+                    <!-- Thanh tiện ích Định vị GPS & Bản đồ tương tác như Shopee -->
+                    <div class="p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-3 mb-3">
+                        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                            <div>
+                                <span class="fw-bold text-danger small d-block">
+                                    <i class="bi bi-crosshair me-1"></i> Định Vị Tự Động (Như Shopee):
+                                </span>
+                                <span class="text-muted" style="font-size: 0.75rem;">Tự động điền 3 cấp Tỉnh/Quận/Xã GHN & tính cước ship tức thì</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" id="btnGpsLocate" class="btn btn-sm btn-danger fw-bold shadow-sm gps-pulse-btn">
+                                    <i class="bi bi-geo-alt-fill me-1"></i> 📍 Vị Trí Hiện Tại
+                                </button>
+                                <button type="button" id="btnOpenMapModal" class="btn btn-sm btn-outline-dark fw-bold bg-white shadow-sm" data-bs-toggle="modal" data-bs-target="#mapPickerModal">
+                                    <i class="bi bi-map-fill text-primary me-1"></i> 🗺️ Chọn Bản Đồ
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Trạng thái định vị -->
+                        <div id="gpsStatusAlert" class="mt-2 small d-none alert alert-light border py-2 px-3 mb-0 rounded-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span id="gpsSpinner" class="spinner-border spinner-border-sm text-danger d-none"></span>
+                                <span id="gpsStatusIcon"><i class="bi bi-geo-fill text-danger"></i></span>
+                                <span id="gpsStatusText" class="fw-semibold text-dark">Đang xác định vị trí...</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- 1. Tỉnh / Thành phố -->
@@ -320,9 +374,59 @@
 </div>
 
 <!-- ========================================================== -->
-<!-- SCRIPT CHUẨN HÓA GHN & VOUCHERS                           -->
+<!-- MODAL CHỌN VỊ TRÍ TRÊN BẢN ĐỒ (LEAFLET / OPENSTREETMAP)    -->
+<!-- ========================================================== -->
+<div class="modal fade" id="mapPickerModal" tabindex="-1" aria-labelledby="mapPickerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3 px-4">
+                <h6 class="modal-title fw-bold" id="mapPickerModalLabel">
+                    <i class="bi bi-geo-alt-fill text-danger me-2"></i>Chọn Vị Trí Giao Hàng Trên Bản Đồ (Như Shopee)
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="d-flex gap-2 mb-2">
+                    <input type="text" id="mapSearchInput" class="form-control form-control-sm" placeholder="Tìm kiếm địa điểm (ví dụ: Cầu Giấy, Nam Từ Liêm, Quận 1...)">
+                    <button type="button" id="btnMapSearch" class="btn btn-sm btn-dark px-3 fw-semibold">
+                        <i class="bi bi-search me-1"></i> Tìm
+                    </button>
+                    <button type="button" id="btnMapCurrentGps" class="btn btn-sm btn-danger px-3 fw-semibold text-nowrap">
+                        <i class="bi bi-crosshair me-1"></i> GPS
+                    </button>
+                </div>
+
+                <!-- Leaflet Container -->
+                <div id="leafletMapContainer" class="border shadow-sm mb-3"></div>
+
+                <!-- Preview Địa Chỉ Chọn Được -->
+                <div class="p-3 bg-light rounded-3 border">
+                    <div class="small fw-bold text-muted mb-1">
+                        <i class="bi bi-pin-map-fill text-danger me-1"></i> Vị trí bạn đã ghim:
+                    </div>
+                    <div id="mapSelectedAddressPreview" class="fw-bold text-dark small">
+                        Nhấn vào bất kỳ điểm nào trên bản đồ hoặc kéo ghim để chọn vị trí giao hàng.
+                    </div>
+                    <div id="mapGeocodeStatus" class="small text-muted mt-1" style="font-size: 0.75rem;">
+                        Tọa độ: <span id="mapCoordsText">21.0285, 105.8542</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light px-4 py-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="btnConfirmMapLocation" class="btn btn-gold btn-sm px-4 fw-bold shadow-sm" data-bs-dismiss="modal">
+                    <i class="bi bi-check2-circle me-1"></i> Dùng Địa Chỉ Này
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================== -->
+<!-- SCRIPT CHUẨN HÓA GHN & VOUCHERS & LEAFLET GPS              -->
 <!-- ========================================================== -->
 @push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 let currentShippingFee = 0;
 let currentVoucherDiscount = {{ (int) $voucherDiscount }};
@@ -358,10 +462,21 @@ function quickApplyVoucher(code) {
     }
 }
 
+// Chuẩn hóa chuỗi tiếng Việt để so khớp Fuzzy Match Tỉnh/Quận/Xã GHN
+function normalizeVietnamese(str) {
+    if (!str) return '';
+    return str.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/^(tinh|thanh pho|tp\.|tp|quan|huyen|thi xa|tx\.|phuong|xa|thi tran|tt\.)\s+/g, '')
+        .replace(/[\s\-_,.]+/g, ' ')
+        .trim();
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const provinceSelect = document.getElementById('province_select');
     const districtSelect = document.getElementById('district_select');
     const wardSelect = document.getElementById('ward_select');
+    const specificAddressInput = document.getElementById('specific_address');
     const shippingFeeText = document.getElementById('shipping_fee_text');
     const provinceNameInput = document.getElementById('province_name_input');
     const districtNameInput = document.getElementById('district_name_input');
@@ -373,8 +488,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const voucherMessage = document.getElementById('voucherMessage');
     const voucherCodeInput = document.getElementById('voucher_code_input');
 
+    const btnGpsLocate = document.getElementById('btnGpsLocate');
+    const gpsStatusAlert = document.getElementById('gpsStatusAlert');
+    const gpsSpinner = document.getElementById('gpsSpinner');
+    const gpsStatusIcon = document.getElementById('gpsStatusIcon');
+    const gpsStatusText = document.getElementById('gpsStatusText');
+
     const districtsUrl = "{{ route('locations.districts', ['provinceId' => '__PROVINCE__']) }}";
     const wardsUrl = "{{ route('locations.wards', ['districtId' => '__DISTRICT__']) }}";
+
+    let ghnProvincesCache = [];
 
     // ==========================================
     // 1. XỬ LÝ ÁP DỤNG & GỠ VOUCHER
@@ -457,19 +580,23 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 2. Tải danh sách 63 Tỉnh/Thành phố trực tiếp từ GHN API
-    function loadProvinces() {
+    // ==========================================
+    // 2. TẢI DANH SÁCH 63 TỈNH/THÀNH TỪ GHN API
+    // ==========================================
+    function loadProvinces(callback) {
         provinceSelect.innerHTML = '<option value="">-- Đang tải danh sách Tỉnh/Thành từ GHN API... --</option>';
         fetch("{{ route('locations.provinces') }}")
             .then(res => res.json())
             .then(res => {
                 if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+                    ghnProvincesCache = res.data;
                     let sortedProvinces = res.data.slice().sort((a, b) => (a.ProvinceName || '').localeCompare(b.ProvinceName || '', 'vi'));
                     let options = '<option value="">-- Chọn Tỉnh / Thành phố (GHN) --</option>';
                     sortedProvinces.forEach(p => {
                         options += `<option value="${p.ProvinceID}" data-name="${p.ProvinceName}">${p.ProvinceName}</option>`;
                     });
                     provinceSelect.innerHTML = options;
+                    if (typeof callback === 'function') callback();
                 } else {
                     provinceSelect.innerHTML = '<option value="">-- Lỗi tải danh sách Tỉnh/Thành từ GHN --</option>';
                 }
@@ -480,6 +607,8 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
     loadProvinces();
+
+    // 3. Khi chọn Tỉnh/Thành -> Tải Quận/Huyện
     provinceSelect.addEventListener('change', function () {
         const selectedOption = this.options[this.selectedIndex];
         provinceNameInput.value = selectedOption.getAttribute('data-name') || '';
@@ -585,6 +714,283 @@ document.addEventListener("DOMContentLoaded", function () {
             recalculateGrandTotal();
         });
     });
+
+    // ==========================================
+    // 6. THUẬT TOÁN ĐỊNH VỊ GPS & ĐỒNG BỘ GHN (SHOPEE STYLE)
+    // ==========================================
+    async function reverseGeocodeAndSyncGHN(lat, lng) {
+        gpsStatusAlert.classList.remove('d-none');
+        gpsSpinner.classList.remove('d-none');
+        gpsStatusIcon.classList.add('d-none');
+        gpsStatusText.innerText = `Đang định vị tọa độ (${lat.toFixed(4)}, ${lng.toFixed(4)})...`;
+
+        try {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+            const response = await fetch(url, {
+                headers: { 'Accept-Language': 'vi' }
+            });
+            const geoData = await response.json();
+
+            if (!geoData || !geoData.address) {
+                throw new Error("Không tìm thấy thông tin địa chỉ từ tọa độ này.");
+            }
+
+            const addr = geoData.address;
+            const provName = addr.city || addr.state || addr.province || '';
+            const distName = addr.city_district || addr.district || addr.county || addr.suburb || '';
+            const wardName = addr.quarter || addr.suburb || addr.ward || addr.village || addr.neighbourhood || '';
+            const roadName = [addr.house_number, addr.road].filter(Boolean).join(' ') || geoData.display_name.split(',')[0];
+
+            gpsStatusText.innerText = `Đã tìm thấy: ${roadName}, ${wardName}, ${distName}, ${provName}. Đang đồng bộ GHN...`;
+
+            // Tự động điền số nhà, đường
+            if (roadName && specificAddressInput) {
+                specificAddressInput.value = roadName;
+            }
+
+            // Đảm bảo cache tỉnh thành đã có
+            if (ghnProvincesCache.length === 0) {
+                await new Promise(resolve => loadProvinces(resolve));
+            }
+
+            // 1. Khớp Tỉnh/Thành phố
+            const normProv = normalizeVietnamese(provName);
+            let matchedProv = ghnProvincesCache.find(p => {
+                const normP = normalizeVietnamese(p.ProvinceName);
+                return normProv.includes(normP) || normP.includes(normProv);
+            });
+
+            // Nếu không tìm thấy, thử fallback Hà Nội / TP.HCM
+            if (!matchedProv && ghnProvincesCache.length > 0) {
+                matchedProv = ghnProvincesCache.find(p => normalizeVietnamese(p.ProvinceName).includes('ha noi')) || ghnProvincesCache[0];
+            }
+
+            if (!matchedProv) throw new Error("Không tìm thấy Tỉnh/Thành GHN phù hợp.");
+
+            provinceSelect.value = matchedProv.ProvinceID;
+            provinceNameInput.value = matchedProv.ProvinceName;
+
+            // 2. Tải danh sách Quận/Huyện của Tỉnh này
+            districtSelect.innerHTML = '<option value="">-- Đang đồng bộ Quận/Huyện GHN... --</option>';
+            districtSelect.disabled = true;
+
+            const distRes = await fetch(districtsUrl.replace('__PROVINCE__', matchedProv.ProvinceID)).then(r => r.json());
+            if (!distRes.data || distRes.data.length === 0) throw new Error("Lỗi tải quận huyện GHN.");
+
+            let distOptions = '<option value="">-- Chọn Quận / Huyện --</option>';
+            distRes.data.forEach(d => {
+                distOptions += `<option value="${d.DistrictID}" data-name="${d.DistrictName}">${d.DistrictName}</option>`;
+            });
+            districtSelect.innerHTML = distOptions;
+            districtSelect.disabled = false;
+
+            // Khớp Quận/Huyện
+            const normDist = normalizeVietnamese(distName);
+            let matchedDist = distRes.data.find(d => {
+                const normD = normalizeVietnamese(d.DistrictName);
+                return normDist.includes(normD) || normD.includes(normDist);
+            });
+
+            if (!matchedDist && distRes.data.length > 0) {
+                matchedDist = distRes.data[0];
+            }
+
+            districtSelect.value = matchedDist.DistrictID;
+            districtNameInput.value = matchedDist.DistrictName;
+
+            // 3. Tải danh sách Phường/Xã của Quận này
+            wardSelect.innerHTML = '<option value="">-- Đang đồng bộ Phường/Xã GHN... --</option>';
+            wardSelect.disabled = true;
+
+            const wardRes = await fetch(wardsUrl.replace('__DISTRICT__', matchedDist.DistrictID)).then(r => r.json());
+            if (!wardRes.data || wardRes.data.length === 0) throw new Error("Lỗi tải phường xã GHN.");
+
+            let wardOptions = '<option value="">-- Chọn Phường / Xã --</option>';
+            wardRes.data.forEach(w => {
+                wardOptions += `<option value="${w.WardCode}" data-name="${w.WardName}">${w.WardName}</option>`;
+            });
+            wardSelect.innerHTML = wardOptions;
+            wardSelect.disabled = false;
+
+            // Khớp Phường/Xã
+            const normWard = normalizeVietnamese(wardName);
+            let matchedWard = wardRes.data.find(w => {
+                const normW = normalizeVietnamese(w.WardName);
+                return normWard.includes(normW) || normW.includes(normWard);
+            });
+
+            if (!matchedWard && wardRes.data.length > 0) {
+                matchedWard = wardRes.data[0];
+            }
+
+            wardSelect.value = matchedWard.WardCode;
+            wardNameInput.value = matchedWard.WardName;
+
+            // 4. Kích hoạt tính cước GHN tự động
+            wardSelect.dispatchEvent(new Event('change'));
+
+            gpsSpinner.classList.add('d-none');
+            gpsStatusIcon.classList.remove('d-none');
+            gpsStatusIcon.innerHTML = '<i class="bi bi-check-circle-fill text-success fs-5"></i>';
+            gpsStatusText.innerHTML = `<span class="text-success fw-bold">Đã định vị & khớp GHN thành công:</span> ${matchedWard.WardName}, ${matchedDist.DistrictName}, ${matchedProv.ProvinceName}`;
+
+        } catch (err) {
+            console.error("Lỗi đồng bộ GPS GHN:", err);
+            gpsSpinner.classList.add('d-none');
+            gpsStatusIcon.classList.remove('d-none');
+            gpsStatusIcon.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>';
+            gpsStatusText.innerHTML = `<span class="text-danger">Không thể tự động khớp đầy đủ:</span> ${err.message}. Vui lòng chọn tay dropdown bên dưới.`;
+        }
+    }
+
+    // Sự kiện nút GPS Lấy vị trí hiện tại
+    if (btnGpsLocate) {
+        btnGpsLocate.addEventListener('click', function () {
+            if (!navigator.geolocation) {
+                alert("Trình duyệt của bạn không hỗ trợ định vị Geolocation.");
+                return;
+            }
+
+            gpsStatusAlert.classList.remove('d-none');
+            gpsSpinner.classList.remove('d-none');
+            gpsStatusIcon.classList.add('d-none');
+            gpsStatusText.innerText = "Đang xin quyền truy cập vị trí GPS từ trình duyệt...";
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    reverseGeocodeAndSyncGHN(lat, lng);
+                },
+                (error) => {
+                    console.warn("Lỗi GPS:", error);
+                    // Fallback mặc định Hà Nội khi bị chặn quyền GPS (Demo / localhost)
+                    gpsStatusText.innerText = "Không lấy được GPS trực tiếp (do chặn quyền), sử dụng vị trí Demo tại Hà Nội...";
+                    reverseGeocodeAndSyncGHN(21.0185, 105.7765);
+                },
+                { enableHighAccuracy: true, timeout: 8000 }
+            );
+        });
+    }
+
+    // ==========================================
+    // 7. KHỞI TẠO LEAFLET MAP MODAL (OPENSTREETMAP)
+    // ==========================================
+    let leafletMap = null;
+    let mapMarker = null;
+    let currentMapLat = 21.0285;
+    let currentMapLng = 105.8542;
+    const mapPickerModalEl = document.getElementById('mapPickerModal');
+    const mapCoordsText = document.getElementById('mapCoordsText');
+    const mapSelectedAddressPreview = document.getElementById('mapSelectedAddressPreview');
+    const btnConfirmMapLocation = document.getElementById('btnConfirmMapLocation');
+    const btnMapCurrentGps = document.getElementById('btnMapCurrentGps');
+    const btnMapSearch = document.getElementById('btnMapSearch');
+    const mapSearchInput = document.getElementById('mapSearchInput');
+
+    function updateMapAddressPreview(lat, lng) {
+        currentMapLat = lat;
+        currentMapLng = lng;
+        if (mapCoordsText) mapCoordsText.innerText = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        if (mapSelectedAddressPreview) mapSelectedAddressPreview.innerText = "Đang tra cứu địa chỉ từ bản đồ...";
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+            headers: { 'Accept-Language': 'vi' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.display_name) {
+                mapSelectedAddressPreview.innerHTML = `<strong>${data.display_name}</strong>`;
+            } else {
+                mapSelectedAddressPreview.innerText = `Tọa độ: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            }
+        })
+        .catch(() => {
+            mapSelectedAddressPreview.innerText = `Tọa độ: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        });
+    }
+
+    if (mapPickerModalEl) {
+        mapPickerModalEl.addEventListener('shown.bs.modal', function () {
+            if (!leafletMap) {
+                leafletMap = L.map('leafletMapContainer').setView([currentMapLat, currentMapLng], 14);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(leafletMap);
+
+                mapMarker = L.marker([currentMapLat, currentMapLng], { draggable: true }).addTo(leafletMap);
+
+                mapMarker.on('dragend', function (e) {
+                    const pos = e.target.getLatLng();
+                    updateMapAddressPreview(pos.lat, pos.lng);
+                });
+
+                leafletMap.on('click', function (e) {
+                    mapMarker.setLatLng(e.latlng);
+                    updateMapAddressPreview(e.latlng.lat, e.latlng.lng);
+                });
+            } else {
+                leafletMap.invalidateSize();
+            }
+
+            updateMapAddressPreview(currentMapLat, currentMapLng);
+        });
+    }
+
+    // Nút GPS trong modal bản đồ
+    if (btnMapCurrentGps) {
+        btnMapCurrentGps.addEventListener('click', function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    if (leafletMap && mapMarker) {
+                        leafletMap.setView([lat, lng], 16);
+                        mapMarker.setLatLng([lat, lng]);
+                        updateMapAddressPreview(lat, lng);
+                    }
+                }, () => {
+                    alert("Không thể lấy GPS. Bạn có thể bấm trực tiếp vào bản đồ để chọn.");
+                });
+            }
+        });
+    }
+
+    // Nút tìm kiếm địa điểm trên bản đồ
+    if (btnMapSearch && mapSearchInput) {
+        const doMapSearch = () => {
+            const query = mapSearchInput.value.trim();
+            if (!query) return;
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Vietnam')}&limit=1`, {
+                headers: { 'Accept-Language': 'vi' }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res && res.length > 0) {
+                    const lat = parseFloat(res[0].lat);
+                    const lng = parseFloat(res[0].lon);
+                    if (leafletMap && mapMarker) {
+                        leafletMap.setView([lat, lng], 15);
+                        mapMarker.setLatLng([lat, lng]);
+                        updateMapAddressPreview(lat, lng);
+                    }
+                } else {
+                    alert("Không tìm thấy địa điểm này. Vui lòng thử từ khóa khác.");
+                }
+            });
+        };
+        btnMapSearch.addEventListener('click', doMapSearch);
+        mapSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); doMapSearch(); } });
+    }
+
+    // Nút Xác nhận vị trí từ bản đồ -> Đồng bộ sang đơn hàng
+    if (btnConfirmMapLocation) {
+        btnConfirmMapLocation.addEventListener('click', function () {
+            reverseGeocodeAndSyncGHN(currentMapLat, currentMapLng);
+        });
+    }
 });
 </script>
 @endpush

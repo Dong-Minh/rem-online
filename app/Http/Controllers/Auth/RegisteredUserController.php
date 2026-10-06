@@ -45,13 +45,19 @@ class RegisteredUserController extends Controller
             'password.confirmed' => 'Mật khẩu xác nhận không khớp.',
         ]);
 
+        $otp = str_pad((string) mt_rand(100000, 999999), 6, '0', STR_PAD_LEFT);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
             'role' => 'customer',
             'password' => Hash::make($request->password),
+            'otp_code' => $otp,
+            'otp_expires_at' => now()->addMinutes(30),
         ]);
+
+        session(['verification_otp' => $otp]);
 
         try {
             event(new Registered($user));
@@ -65,6 +71,6 @@ class RegisteredUserController extends Controller
         app(\App\Services\CartService::class)->mergeSessionCartToUser($user);
 
         // Yêu cầu người dùng xác thực email trước khi mua hàng
-        return redirect()->route('verification.notice')->with('success', 'Đăng ký tài khoản thành công! Vui lòng xác thực email của bạn để bắt đầu đặt may rèm.');
+        return redirect()->route('verification.notice')->with('success', 'Đăng ký tài khoản thành công! Vui lòng nhập mã OTP hoặc kích hoạt nhanh để bắt đầu đặt may rèm.');
     }
 }
