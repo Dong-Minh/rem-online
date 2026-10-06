@@ -53,7 +53,11 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        event(new Registered($user));
+        try {
+            event(new Registered($user));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Không thể gửi mail xác thực:', ['error' => $e->getMessage()]);
+        }
 
         Auth::login($user);
 
