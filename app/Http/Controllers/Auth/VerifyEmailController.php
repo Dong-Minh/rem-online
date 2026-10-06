@@ -49,17 +49,21 @@ class VerifyEmailController extends Controller
         }
 
         $inputOtp = trim($request->input('otp'));
-        $validOtp = $user->otp_code ?? session('verification_otp');
+        $cachedOtp = \Illuminate\Support\Facades\Cache::get('verification_otp_' . $user->id);
+        $validOtp = session('verification_otp') ?? $cachedOtp ?? '849201';
 
         // Chấp nhận mã OTP của user, session demo hoặc mã default demo '849201'
-        if ($inputOtp === $validOtp || $inputOtp === session('verification_otp') || $inputOtp === '849201') {
+        if ($inputOtp === $validOtp || $inputOtp === session('verification_otp') || $inputOtp === $cachedOtp || $inputOtp === '849201') {
             $user->markEmailAsVerified();
             try {
-                $user->otp_code = null;
-                $user->otp_expires_at = null;
-                $user->save();
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'otp_code')) {
+                    $user->otp_code = null;
+                    $user->otp_expires_at = null;
+                    $user->save();
+                }
             } catch (\Throwable $e) {}
             session()->forget('verification_otp');
+            \Illuminate\Support\Facades\Cache::forget('verification_otp_' . $user->id);
 
             event(new Verified($user));
 

@@ -20,23 +20,24 @@ class EmailVerificationPromptController extends Controller
             return redirect()->intended(route('home', absolute: false));
         }
 
-        // Tự động tạo OTP nếu chưa có hoặc đã hết hạn
-        if (empty($user->otp_code) || ($user->otp_expires_at && $user->otp_expires_at->isPast())) {
-            $otp = str_pad((string) mt_rand(100000, 999999), 6, '0', STR_PAD_LEFT);
+        $currentOtp = session('verification_otp') ?? \Illuminate\Support\Facades\Cache::get('verification_otp_' . $user->id);
+
+        if (empty($currentOtp)) {
+            $currentOtp = str_pad((string) mt_rand(100000, 999999), 6, '0', STR_PAD_LEFT);
+            session(['verification_otp' => $currentOtp]);
+            \Illuminate\Support\Facades\Cache::put('verification_otp_' . $user->id, $currentOtp, now()->addMinutes(30));
+
             try {
-                $user->otp_code = $otp;
-                $user->otp_expires_at = now()->addMinutes(30);
-                $user->save();
-            } catch (\Throwable $e) {
-                // Fallback nếu chưa kịp migrate
-            }
-            session(['verification_otp' => $otp]);
-        } else {
-            session(['verification_otp' => $user->otp_code]);
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'otp_code')) {
+                    $user->otp_code = $currentOtp;
+                    $user->otp_expires_at = now()->addMinutes(30);
+                    $user->save();
+                }
+            } catch (\Throwable $e) {}
         }
 
         return view('auth.verify-email', [
-            'otpCode' => $user->otp_code ?? session('verification_otp', '849201'),
+            'otpCode' => $currentOtp ?? '849201',
         ]);
     }
 }
