@@ -753,16 +753,32 @@ document.addEventListener("DOMContentLoaded", function () {
                 await new Promise(resolve => loadProvinces(resolve));
             }
 
-            // 1. Khớp Tỉnh/Thành phố
+            // 1. Khớp Tỉnh/Thành phố (Lọc bỏ các tỉnh test như 'Hà Nội 02')
             const normProv = normalizeVietnamese(provName);
-            let matchedProv = ghnProvincesCache.find(p => {
-                const normP = normalizeVietnamese(p.ProvinceName);
-                return normProv.includes(normP) || normP.includes(normProv);
-            });
+            const validProvinces = ghnProvincesCache.filter(p => !p.ProvinceName.match(/0[1-9]|\btest\b/i));
+            const provincePool = validProvinces.length > 0 ? validProvinces : ghnProvincesCache;
 
-            // Nếu không tìm thấy, thử fallback Hà Nội / TP.HCM
-            if (!matchedProv && ghnProvincesCache.length > 0) {
-                matchedProv = ghnProvincesCache.find(p => normalizeVietnamese(p.ProvinceName).includes('ha noi')) || ghnProvincesCache[0];
+            // Ưu tiên khớp chính xác 100% trước
+            let matchedProv = provincePool.find(p => normalizeVietnamese(p.ProvinceName) === normProv);
+
+            if (!matchedProv) {
+                matchedProv = provincePool.find(p => {
+                    const normP = normalizeVietnamese(p.ProvinceName);
+                    return normProv.includes(normP) || normP.includes(normProv);
+                });
+            }
+
+            // Nếu không tìm thấy, thử fallback theo từ khóa Hà Nội / TP.HCM
+            if (!matchedProv) {
+                if (normProv.includes('ha noi') || normProv.includes('hn')) {
+                    matchedProv = provincePool.find(p => p.ProvinceID === 201 || normalizeVietnamese(p.ProvinceName) === 'ha noi');
+                } else if (normProv.includes('ho chi minh') || normProv.includes('hcm') || normProv.includes('sai gon')) {
+                    matchedProv = provincePool.find(p => p.ProvinceID === 202 || normalizeVietnamese(p.ProvinceName) === 'ho chi minh');
+                }
+            }
+
+            if (!matchedProv && provincePool.length > 0) {
+                matchedProv = provincePool[0];
             }
 
             if (!matchedProv) throw new Error("Không tìm thấy Tỉnh/Thành GHN phù hợp.");
@@ -770,12 +786,26 @@ document.addEventListener("DOMContentLoaded", function () {
             provinceSelect.value = matchedProv.ProvinceID;
             provinceNameInput.value = matchedProv.ProvinceName;
 
-            // 2. Tải danh sách Quận/Huyện của Tỉnh này
+            // 2. Tải danh sách Quận/Huyện của Tỉnh này (có cơ chế Retry nếu trúng mã tỉnh rỗng)
             districtSelect.innerHTML = '<option value="">-- Đang đồng bộ Quận/Huyện GHN... --</option>';
             districtSelect.disabled = true;
 
-            const distRes = await fetch(districtsUrl.replace('__PROVINCE__', matchedProv.ProvinceID)).then(r => r.json());
-            if (!distRes.data || distRes.data.length === 0) throw new Error("Lỗi tải quận huyện GHN.");
+            let distRes = await fetch(districtsUrl.replace('__PROVINCE__', matchedProv.ProvinceID)).then(r => r.json());
+            
+            // Nếu tỉnh này trả về rỗng (như các mã test), thử tìm mã tỉnh khác có tên tương tự
+            if (!distRes.data || distRes.data.length === 0) {
+                const altProv = ghnProvincesCache.find(p => p.ProvinceID !== matchedProv.ProvinceID && normalizeVietnamese(p.ProvinceName) === normalizeVietnamese(matchedProv.ProvinceName));
+                if (altProv) {
+                    matchedProv = altProv;
+                    provinceSelect.value = matchedProv.ProvinceID;
+                    provinceNameInput.value = matchedProv.ProvinceName;
+                    distRes = await fetch(districtsUrl.replace('__PROVINCE__', matchedProv.ProvinceID)).then(r => r.json());
+                }
+            }
+
+            if (!distRes.data || distRes.data.length === 0) {
+                throw new Error(`Không tải được danh sách quận/huyện cho ${matchedProv.ProvinceName}`);
+            }
 
             let distOptions = '<option value="">-- Chọn Quận / Huyện --</option>';
             distRes.data.forEach(d => {
@@ -786,10 +816,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Khớp Quận/Huyện
             const normDist = normalizeVietnamese(distName);
-            let matchedDist = distRes.data.find(d => {
-                const normD = normalizeVietnamese(d.DistrictName);
-                return normDist.includes(normD) || normD.includes(normDist);
-            });
+            let matchedDist = distRes.data.find(d => normalizeVietnamese(d.DistrictName) === normDist);
+
+            if (!matchedDist) {
+                matchedDist = distRes.data.find(d => {
+                    const normD = normalizeVietnamese(d.DistrictName);
+                    return normDist.includes(normD) || normD.includes(normDist);
+                });
+            }
 
             if (!matchedDist && distRes.data.length > 0) {
                 matchedDist = distRes.data[0];
@@ -803,7 +837,9 @@ document.addEventListener("DOMContentLoaded", function () {
             wardSelect.disabled = true;
 
             const wardRes = await fetch(wardsUrl.replace('__DISTRICT__', matchedDist.DistrictID)).then(r => r.json());
-            if (!wardRes.data || wardRes.data.length === 0) throw new Error("Lỗi tải phường xã GHN.");
+            if (!wardRes.data || wardRes.data.length === 0) {
+                throw new Error(`Không tải được danh sách phường/xã cho ${matchedDist.DistrictName}`);
+            }
 
             let wardOptions = '<option value="">-- Chọn Phường / Xã --</option>';
             wardRes.data.forEach(w => {
@@ -814,10 +850,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Khớp Phường/Xã
             const normWard = normalizeVietnamese(wardName);
-            let matchedWard = wardRes.data.find(w => {
-                const normW = normalizeVietnamese(w.WardName);
-                return normWard.includes(normW) || normW.includes(normWard);
-            });
+            let matchedWard = wardRes.data.find(w => normalizeVietnamese(w.WardName) === normWard);
+
+            if (!matchedWard) {
+                matchedWard = wardRes.data.find(w => {
+                    const normW = normalizeVietnamese(w.WardName);
+                    return normWard.includes(normW) || normW.includes(normWard);
+                });
+            }
 
             if (!matchedWard && wardRes.data.length > 0) {
                 matchedWard = wardRes.data[0];
