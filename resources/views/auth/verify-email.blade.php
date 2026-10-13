@@ -33,6 +33,21 @@
         </div>
     @endif
 
+    @if(config('app.debug') || env('DEMO_MODE', true))
+        <div class="alert alert-warning border border-warning border-opacity-50 d-flex align-items-center justify-content-between mb-3 py-2 px-3 small rounded-3 shadow-sm bg-warning bg-opacity-10 text-dark">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-key-fill text-warning fs-5 me-2"></i>
+                <div>
+                    <span class="text-muted" style="font-size: 0.78rem;">Mã OTP Cloud Demo:</span>
+                    <strong class="font-monospace text-dark px-2 py-0 bg-white rounded border border-warning ms-1" style="font-size: 0.95rem; letter-spacing: 2px;">{{ $otpCode ?? '849201' }}</strong>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-warning text-dark py-0 px-2 fw-bold" style="font-size: 0.78rem;" onclick="document.getElementById('otp_input').value='{{ $otpCode ?? '849201' }}'">
+                Điền nhanh
+            </button>
+        </div>
+    @endif
+
     <!-- FORM NHẬP MÃ OTP 6 SỐ -->
     <form method="POST" action="{{ url('/email/verify-otp') }}" class="mb-4">
         @csrf

@@ -20,7 +20,7 @@ class EmailVerificationPromptController extends Controller
             return redirect()->intended(route('home', absolute: false));
         }
 
-        $currentOtp = session('verification_otp') ?? \Illuminate\Support\Facades\Cache::get('verification_otp_' . $user->id);
+        $currentOtp = session('verification_otp') ?? \Illuminate\Support\Facades\Cache::get('verification_otp_' . $user->id) ?? $user->otp_code;
 
         if (empty($currentOtp)) {
             $currentOtp = str_pad((string) mt_rand(100000, 999999), 6, '0', STR_PAD_LEFT);
