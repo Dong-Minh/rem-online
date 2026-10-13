@@ -167,8 +167,14 @@ class CartService
     /**
      * Gộp giỏ hàng session của khách vào giỏ hàng user khi đăng nhập
      */
-    public function mergeSessionCartToUser($user)
+    public function mergeSessionCartToUser($user = null)
     {
+        $user = $user ?? Auth::user();
+
+        if (! $user) {
+            return;
+        }
+
         $sessionId = Session::getId();
         $sessionCart = Cart::where('session_id', $sessionId)->first();
 

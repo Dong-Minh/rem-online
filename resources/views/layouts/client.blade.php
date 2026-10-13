@@ -478,11 +478,11 @@
         </button>
 
         <!-- Khung chat popup đa năng -->
-        <div id="chat-popup" class="card shadow-2xl border-0 rounded-4 overflow-hidden" 
-             style="display: none; width: 390px; max-width: calc(100vw - 24px); height: 560px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); border: 1px solid rgba(184, 134, 11, 0.3) !important;">
+        <div id="chat-popup" class="card shadow-2xl border-0 rounded-4" 
+             style="display: none; flex-direction: column; width: 390px; max-width: calc(100vw - 30px); height: 560px; max-height: calc(100vh - 40px); box-shadow: 0 20px 50px rgba(0,0,0,0.35); border: 2px solid #d4af37 !important; border-radius: 1rem !important; overflow: hidden; background: #ffffff;">
             
-            <!-- Header có nút Đóng rõ ràng và 2 Tabs điều hướng -->
-            <div class="card-header p-3 text-white border-0" 
+            <!-- Header cố định có nút Đóng X nổi bật và 2 Tabs điều hướng -->
+            <div class="card-header p-3 text-white border-0 flex-shrink-0" 
                  style="background: linear-gradient(135deg, #1a2232 0%, #111723 100%); border-bottom: 2px solid #b8860b;">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <div class="d-flex align-items-center gap-2">
@@ -494,26 +494,27 @@
                         </div>
                         <div>
                             <h6 class="mb-0 fw-bold small text-white" id="chat-header-title">Hỗ Trợ & Tư Vấn Rèm Online</h6>
-                            <small class="text-warning" style="font-size: 0.7rem;"><i class="bi bi-dot"></i>Phản hồi 24/7</small>
+                            <small class="text-warning" style="font-size: 0.7rem;"><i class="bi bi-dot"></i>Phản hồi tức thì 24/7</small>
                         </div>
                     </div>
                     
-                    <!-- Nút Tắt / Thu nhỏ Khung Chat cực kỳ rõ ràng -->
-                    <button type="button" class="btn btn-sm btn-outline-light text-white rounded-circle p-0 d-flex align-items-center justify-content-center border-2 shadow-sm" 
+                    <!-- Nút Tắt / Đóng Cửa Sổ Chat (Nút X đỏ rõ ràng) -->
+                    <button type="button" class="btn btn-sm btn-danger text-white rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
                             onclick="closeChatWidget()" 
-                            style="width: 30px; height: 30px; font-size: 1.1rem; line-height: 1; cursor: pointer; background: rgba(255,255,255,0.15);" 
-                            title="Đóng / Thu nhỏ khung chat">
+                            style="width: 32px; height: 32px; font-size: 1.15rem; line-height: 1; cursor: pointer; border: 2px solid #ffffff; transition: transform 0.2s;" 
+                            onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+                            title="Đóng cửa sổ chat (Phím Esc)">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
 
-                <!-- 2 Tabs điều hướng nổi bật -->
+                <!-- 2 Tabs điều hướng nổi bật: AI & Nhân Viên -->
                 <div class="btn-group w-100 p-1 bg-dark bg-opacity-75 rounded-3" role="group">
                     <button type="button" class="btn btn-sm btn-warning text-dark fw-bold py-1 px-2" id="ai-tab-btn" onclick="switchChatTab('ai')">
                         <i class="bi bi-robot me-1"></i> 🤖 Trợ Lý AI (24/7)
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-light text-white fw-bold py-1 px-2" id="human-tab-btn" onclick="switchChatTab('human')">
-                        <i class="bi bi-headset me-1"></i> 👨‍💼 Chat Admin / CSKH
+                        <i class="bi bi-headset me-1"></i> 👨‍💼 Chat Với Nhân Viên
                     </button>
                 </div>
             </div>
@@ -521,7 +522,7 @@
             <!-- ========================================== -->
             <!-- 1. TAB BODY: TRỢ LÝ AI (AI ASSISTANT 24/7)  -->
             <!-- ========================================== -->
-            <div id="ai-tab-content" class="d-flex flex-column h-100" style="flex: 1; min-height: 0;">
+            <div id="ai-tab-content" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
                 <div id="ai-chat-messages" class="card-body p-3 overflow-auto bg-light d-flex flex-column gap-2" style="flex: 1; font-size: 0.84rem;">
                     <!-- Lời chào mở đầu từ AI -->
                     <div class="d-flex flex-column align-items-start mb-2">
@@ -546,7 +547,7 @@
                 </div>
 
                 <!-- Chips Gợi Ý Nhanh (Quick Replies) -->
-                <div id="ai-quick-chips" class="px-2 py-1 bg-white border-top border-bottom overflow-auto text-nowrap d-flex gap-1" style="max-height: 42px;">
+                <div id="ai-quick-chips" class="px-2 py-1 bg-white border-top border-bottom overflow-auto text-nowrap d-flex gap-1 flex-shrink-0" style="max-height: 42px;">
                     <button type="button" class="btn btn-sm btn-outline-warning text-dark py-0 px-2 font-monospace" style="font-size: 0.72rem;" onclick="sendAiQuickMessage('Tư vấn rèm cho phòng khách')">
                         🛋️ Rèm phòng khách
                     </button>
@@ -565,7 +566,7 @@
                 </div>
 
                 <!-- Footer Chat Input AI -->
-                <div class="card-footer bg-white p-2 border-top">
+                <div class="card-footer bg-white p-2 border-top flex-shrink-0">
                     <form id="ai-chat-form" onsubmit="event.preventDefault(); sendAiMessage();" class="m-0">
                         <div class="input-group">
                             <input type="text" id="ai-chat-input" class="form-control form-control-sm rounded-start-pill border-end-0 ps-3" 
@@ -581,7 +582,7 @@
             <!-- ========================================== -->
             <!-- 2. TAB BODY: NHÂN VIÊN CSKH / ADMIN         -->
             <!-- ========================================== -->
-            <div id="human-tab-content" class="d-none flex-column h-100" style="flex: 1; min-height: 0;">
+            <div id="human-tab-content" style="flex: 1; min-height: 0; display: none; flex-direction: column;">
                 <div id="human-chat-messages" class="card-body p-3 overflow-auto bg-light d-flex flex-column gap-2" style="flex: 1; font-size: 0.85rem;">
                     @auth
                         <div class="text-center text-muted my-auto" id="human-chat-loading-placeholder">
@@ -608,7 +609,7 @@
                 </div>
 
                 @auth
-                    <div class="card-footer bg-white p-2 border-top">
+                    <div class="card-footer bg-white p-2 border-top flex-shrink-0">
                         <form id="human-chat-form" onsubmit="event.preventDefault(); sendHumanMessage();" class="m-0">
                             <div class="input-group">
                                 <input type="text" id="human-chat-input" class="form-control form-control-sm rounded-start-pill border-end-0 ps-3" 
@@ -632,9 +633,12 @@
     window.openChatWidget = function(tab) {
         const popup = document.getElementById("chat-popup");
         const toggle = document.getElementById("chat-toggle");
-        if (popup) popup.style.display = "block";
+        if (popup) {
+            popup.style.display = "flex";
+            popup.scrollTop = 0;
+        }
         if (toggle) toggle.style.display = "none";
-        if (tab) switchChatTab(tab);
+        switchChatTab(tab || 'ai');
     };
 
     // Hàm đóng popup
@@ -653,18 +657,21 @@
         const humanTabContent = document.getElementById("human-tab-content");
         const aiInput = document.getElementById("ai-chat-input");
         const humanInput = document.getElementById("human-chat-input");
+        const popup = document.getElementById("chat-popup");
+
+        if (popup) popup.scrollTop = 0;
 
         if (tabName === 'ai') {
             if (aiTabBtn) aiTabBtn.className = "btn btn-sm btn-warning text-dark fw-bold py-1 px-2";
             if (humanTabBtn) humanTabBtn.className = "btn btn-sm btn-outline-light text-white fw-bold py-1 px-2";
-            if (aiTabContent) aiTabContent.className = "d-flex flex-column h-100";
-            if (humanTabContent) humanTabContent.className = "d-none flex-column h-100";
+            if (aiTabContent) aiTabContent.style.display = "flex";
+            if (humanTabContent) humanTabContent.style.display = "none";
             if (aiInput) aiInput.focus();
         } else {
             if (humanTabBtn) humanTabBtn.className = "btn btn-sm btn-primary text-white fw-bold py-1 px-2";
             if (aiTabBtn) aiTabBtn.className = "btn btn-sm btn-outline-light text-white fw-bold py-1 px-2";
-            if (humanTabContent) humanTabContent.className = "d-flex flex-column h-100";
-            if (aiTabContent) aiTabContent.className = "d-none flex-column h-100";
+            if (humanTabContent) humanTabContent.style.display = "flex";
+            if (aiTabContent) aiTabContent.style.display = "none";
             @auth
                 loadHumanMessages();
                 if (humanInput) humanInput.focus();

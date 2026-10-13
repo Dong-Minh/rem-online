@@ -34,7 +34,7 @@ class VerifyEmailController extends Controller
         $request->validate([
             'otp' => ['required', 'string', 'size:6'],
         ], [
-            'otp.required' => 'Vui lòng nhập mã OTP 6 số.',
+            'otp.required' => 'Vui lòng nhập mã OTP gồm 6 chữ số.',
             'otp.size' => 'Mã OTP phải gồm đúng 6 chữ số.',
         ]);
 
@@ -45,23 +45,30 @@ class VerifyEmailController extends Controller
         }
 
         if ($user->hasVerifiedEmail()) {
-            return redirect()->route('home')->with('info', 'Tài khoản của bạn đã được xác thực.');
+            return redirect()->route('home')->with('info', 'Tài khoản của bạn đã được xác thực trước đó.');
         }
 
         $inputOtp = trim($request->input('otp'));
         $cachedOtp = \Illuminate\Support\Facades\Cache::get('verification_otp_' . $user->id);
-        $validOtp = session('verification_otp') ?? $cachedOtp ?? '849201';
+        $userOtp = $user->otp_code;
+        $sessionOtp = session('verification_otp');
 
-        // Chấp nhận mã OTP của user, session demo hoặc mã default demo '849201'
-        if ($inputOtp === $validOtp || $inputOtp === session('verification_otp') || $inputOtp === $cachedOtp || $inputOtp === '849201') {
+        // Kiểm tra thời hạn hiệu lực của mã OTP
+        if ($user->otp_expires_at && $user->otp_expires_at->isPast()) {
+            return back()->withErrors(['otp' => 'Mã OTP đã hết hạn hiệu lực (quá 10 phút). Vui lòng nhấn "Gửi lại mã mới" để nhận mã khác.']);
+        }
+
+        // So khớp mã OTP thực tế
+        $isValid = ($userOtp && $inputOtp === $userOtp)
+                || ($cachedOtp && $inputOtp === $cachedOtp)
+                || ($sessionOtp && $inputOtp === $sessionOtp);
+
+        if ($isValid) {
             $user->markEmailAsVerified();
-            try {
-                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'otp_code')) {
-                    $user->otp_code = null;
-                    $user->otp_expires_at = null;
-                    $user->save();
-                }
-            } catch (\Throwable $e) {}
+            $user->otp_code = null;
+            $user->otp_expires_at = null;
+            $user->save();
+
             session()->forget('verification_otp');
             \Illuminate\Support\Facades\Cache::forget('verification_otp_' . $user->id);
 
@@ -70,30 +77,14 @@ class VerifyEmailController extends Controller
             return redirect()->route('home')->with('success', '🎉 Xác thực mã OTP thành công! Chào mừng bạn đến với Rèm Online.');
         }
 
-        return back()->withErrors(['otp' => 'Mã OTP không chính xác hoặc đã hết hạn. Vui lòng kiểm tra lại.']);
+        return back()->withErrors(['otp' => 'Mã OTP không chính xác. Vui lòng kiểm tra lại hòm thư email của bạn (bao gồm mục Thư rác/Spam).']);
     }
 
     /**
-     * Kích hoạt xác thực ngay lập tức (Dành cho Giảng viên / Chấm thi / Demo)
+     * Chuyển hướng nếu truy cập instant verification
      */
     public function verifyInstant(Request $request): RedirectResponse
     {
-        $user = $request->user();
-        
-        if ($user) {
-            if (!$user->hasVerifiedEmail()) {
-                $user->markEmailAsVerified();
-                try {
-                    $user->otp_code = null;
-                    $user->otp_expires_at = null;
-                    $user->save();
-                } catch (\Throwable $e) {}
-                session()->forget('verification_otp');
-                event(new Verified($user));
-            }
-            return redirect()->route('home')->with('success', '🎉 Kích hoạt tài khoản thành công! Bạn có thể thoải mái thêm giỏ hàng và đặt may rèm.');
-        }
-
-        return redirect()->route('login');
+        return redirect()->route('verification.notice');
     }
 }

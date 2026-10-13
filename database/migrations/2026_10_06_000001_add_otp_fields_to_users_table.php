@@ -11,14 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        try {
             if (!Schema::hasColumn('users', 'otp_code')) {
-                $table->string('otp_code', 6)->nullable()->after('email_verified_at');
+                Schema::table('users', function (Blueprint $table) {
+                    $table->string('otp_code', 6)->nullable();
+                });
             }
             if (!Schema::hasColumn('users', 'otp_expires_at')) {
-                $table->timestamp('otp_expires_at')->nullable()->after('otp_code');
+                Schema::table('users', function (Blueprint $table) {
+                    $table->timestamp('otp_expires_at')->nullable();
+                });
             }
-        });
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Migration add_otp_fields_to_users_table: ' . $e->getMessage());
+        }
     }
 
     /**

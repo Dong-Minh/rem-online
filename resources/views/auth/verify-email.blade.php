@@ -1,97 +1,75 @@
 <x-guest-layout>
-    <div class="mb-3 text-center">
-        <div class="mb-2 text-warning fs-1">
+    <div class="mb-4 text-center">
+        <div class="mb-3 text-warning" style="font-size: 2.8rem;">
             <i class="bi bi-shield-lock-fill"></i>
         </div>
-        <h5 class="fw-bold text-dark mb-1">Xác Thực Tài Khoản Email</h5>
-        <p class="text-muted small mb-2">
-            Chào mừng bạn đến với <strong>Rèm Online</strong>! Vui lòng nhập mã xác thực OTP 6 số để kích hoạt tài khoản mua sắm và may đo rèm:
+        <h4 class="fw-bold text-dark mb-2">Xác Thực Tài Khoản Email</h4>
+        <p class="text-muted small mb-3">
+            Mã xác thực OTP gồm <strong>6 chữ số</strong> đã được gửi tới hộp thư điện tử của bạn:
         </p>
-        <div class="badge bg-light text-primary border px-3 py-2 fs-6 font-monospace mb-2">
-            <i class="bi bi-envelope-at me-1"></i> {{ auth()->user()->email ?? 'Email của bạn' }}
+        <div class="d-inline-flex align-items-center bg-light border border-primary border-opacity-25 rounded-pill px-3 py-2 text-primary fw-semibold small mb-2 shadow-sm">
+            <i class="bi bi-envelope-check-fill me-2 fs-6"></i> {{ auth()->user()->email ?? 'Email của bạn' }}
         </div>
+        <p class="text-secondary mb-0" style="font-size: 0.8rem;">
+            Vui lòng kiểm tra hộp thư đến (hoặc thư mục <strong>Thư rác / Spam</strong>) và nhập mã OTP bên dưới để kích hoạt tài khoản.
+        </p>
     </div>
 
     @if (session('status') == 'verification-link-sent' || session('success'))
-        <div class="alert alert-success d-flex align-items-center mb-3 py-2 small" role="alert">
-            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+        <div class="alert alert-success d-flex align-items-center mb-3 py-2 small rounded-3 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5 text-success"></i>
             <div>
-                {{ session('success') ?? 'Mã xác minh mới đã được gửi tới email của bạn!' }}
+                {{ session('success') ?? 'Mã xác thực OTP mới đã được gửi tới email của bạn!' }}
             </div>
         </div>
     @endif
 
     @if ($errors->has('otp'))
-        <div class="alert alert-danger d-flex align-items-center mb-3 py-2 small" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <div class="alert alert-danger d-flex align-items-center mb-3 py-2 small rounded-3 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5 text-danger"></i>
             <div>
                 {{ $errors->first('otp') }}
             </div>
         </div>
     @endif
 
-    <!-- KHU VỰC 1: MÃ OTP DEMO / CHẤM THI TRỰC TIẾP -->
-    @php
-        $displayOtp = $otpCode ?? auth()->user()->otp_code ?? session('verification_otp', '849201');
-    @endphp
-    <div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 mb-3 text-center shadow-sm">
-        <div class="small fw-bold text-dark mb-1 d-flex align-items-center justify-content-center gap-1">
-            <i class="bi bi-key-fill text-warning"></i> Mã OTP Xác Thực Của Bạn (Phục vụ Chấm thi & Demo):
-        </div>
-        <div class="d-flex align-items-center justify-content-center gap-2 my-2">
-            <span class="fs-3 fw-extrabold font-monospace text-danger tracking-widest bg-white px-3 py-1 rounded border border-warning shadow-sm" id="demoOtpText" style="letter-spacing: 6px;">
-                {{ $displayOtp }}
-            </span>
-            <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="autoFillOtp('{{ $displayOtp }}')" title="Tự động điền mã này vào ô bên dưới">
-                <i class="bi bi-arrow-down-circle-fill me-1"></i> Điền nhanh
-            </button>
-        </div>
-        <div class="text-muted" style="font-size: 0.72rem;">
-            * Mã OTP có hiệu lực trong 30 phút. Bạn có thể bấm "Điền nhanh" hoặc gõ 6 số vào ô bên dưới.
-        </div>
-    </div>
-
-    <!-- KHU VỰC 2: FORM NHẬP MÃ OTP 6 SỐ -->
-    <form method="POST" action="{{ url('/email/verify-otp') }}" class="mb-3">
+    <!-- FORM NHẬP MÃ OTP 6 SỐ -->
+    <form method="POST" action="{{ url('/email/verify-otp') }}" class="mb-4">
         @csrf
-        <div class="mb-3">
-            <label for="otp" class="form-label small fw-bold text-dark text-center d-block">
+        <div class="mb-3 text-center">
+            <label for="otp_input" class="form-label small fw-bold text-dark mb-2">
                 Nhập mã xác thực 6 số:
             </label>
             <div class="d-flex justify-content-center">
                 <input type="text" 
                        name="otp" 
                        id="otp_input" 
-                       class="form-control form-control-lg text-center font-monospace fw-bold fs-3 border-2 @error('otp') is-invalid @enderror" 
+                       class="form-control form-control-lg text-center font-monospace fw-bold fs-2 border-2 shadow-sm @error('otp') is-invalid @enderror" 
                        placeholder="••••••" 
                        maxlength="6" 
                        pattern="[0-9]{6}" 
                        inputmode="numeric"
-                       style="max-width: 240px; letter-spacing: 8px;"
+                       style="max-width: 250px; letter-spacing: 10px; border-color: #d97706; background-color: #fffbeb;"
                        required 
                        autofocus>
             </div>
+            <div class="form-text text-muted small mt-2" style="font-size: 0.75rem;">
+                <i class="bi bi-clock-history me-1"></i> Mã OTP có hiệu lực trong vòng 10 phút.
+            </div>
         </div>
 
-        <button type="submit" class="btn btn-gold w-100 py-2 fw-bold shadow-sm">
+        <button type="submit" class="btn btn-gold w-100 py-2 fw-bold shadow-sm fs-6">
             <i class="bi bi-shield-check me-1"></i> Xác Nhận Mã OTP
         </button>
     </form>
 
-    <!-- KHU VỰC 3: KÍCH HOẠT NHANH 1-CLICK & GỬI LẠI -->
-    <div class="border-top pt-3 d-flex flex-column gap-2">
-        <form method="POST" action="{{ url('/email/verify-instant') }}">
-            @csrf
-            <button type="submit" class="btn btn-outline-success w-100 py-2 fw-semibold btn-sm">
-                <i class="bi bi-lightning-charge-fill me-1"></i> 🚀 Kích Hoạt Nhanh 1-Click (Bỏ qua OTP)
-            </button>
-        </form>
-
-        <div class="d-flex justify-content-between align-items-center mt-1">
+    <!-- KHU VỰC GỬI LẠI MÃ & ĐĂNG XUẤT -->
+    <div class="border-top pt-3">
+        <div class="d-flex justify-content-between align-items-center">
             <form method="POST" action="{{ url('/email/verification-notification') }}">
                 @csrf
-                <button type="submit" class="btn btn-link text-decoration-none text-muted p-0 small">
-                    <i class="bi bi-arrow-clockwise me-1"></i> Gửi lại mã mới
+                <button type="submit" class="btn btn-link text-decoration-none text-primary p-0 small fw-semibold">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Chưa nhận được? Gửi lại mã OTP
                 </button>
             </form>
 
@@ -104,21 +82,9 @@
         </div>
     </div>
 
-    @push('scripts')
-    <script>
-    function autoFillOtp(code) {
-        const input = document.getElementById('otp_input');
-        if (input) {
-            input.value = code;
-            input.focus();
-        }
-    }
-    </script>
-    @endpush
-
     @section('auth_footer')
         <div class="text-muted small">
-            <i class="bi bi-info-circle me-1"></i> Đảm bảo quá trình nghiệm thu hệ thống diễn ra thông suốt và tức thì 100%.
+            <i class="bi bi-shield-fill-check text-success me-1"></i> Hệ thống xác thực danh tính bảo mật 2 lớp Rèm Online.
         </div>
     @endsection
 </x-guest-layout>

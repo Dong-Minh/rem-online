@@ -465,11 +465,19 @@ function quickApplyVoucher(code) {
 // Chuẩn hóa chuỗi tiếng Việt để so khớp Fuzzy Match Tỉnh/Quận/Xã GHN
 function normalizeVietnamese(str) {
     if (!str) return '';
-    return str.toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/^(tinh|thanh pho|tp\.|tp|quan|huyen|thi xa|tx\.|phuong|xa|thi tran|tt\.)\s+/g, '')
-        .replace(/[\s\-_,.]+/g, ' ')
-        .trim();
+    let s = str.trim().toLowerCase();
+    s = s.replace(/đ/g, 'd').replace(/Đ/g, 'd');
+    s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    s = s.replace(/^(tinh|thanh pho|tp\.|tp|quan|huyen|thi xa|tx\.|phuong|xa|thi tran|tt\.)\s+/gi, '');
+    s = s.replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+    return s;
+}
+
+function matchTextBoundary(fullNormText, targetNorm) {
+    if (!targetNorm || !fullNormText) return false;
+    const escaped = targetNorm.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const regex = new RegExp("(^|\\s)" + escaped + "($|\\s)");
+    return regex.test(fullNormText);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -599,11 +607,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (typeof callback === 'function') callback();
                 } else {
                     provinceSelect.innerHTML = '<option value="">-- Lỗi tải danh sách Tỉnh/Thành từ GHN --</option>';
+                    if (typeof callback === 'function') callback();
                 }
             })
             .catch(err => {
                 console.error("Lỗi tải Tỉnh/Thành GHN:", err);
                 provinceSelect.innerHTML = '<option value="">-- Lỗi kết nối GHN API --</option>';
+                if (typeof callback === 'function') callback();
             });
     }
     loadProvinces();
@@ -735,15 +745,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 throw new Error("Không tìm thấy thông tin địa chỉ từ tọa độ này.");
             }
 
-            const addr = geoData.address;
+            const addr = geoData.address || {};
+            const displayName = geoData.display_name || '';
+            const fullText = (displayName + ' ' + Object.values(addr).join(' '));
+            const normFullText = normalizeVietnamese(fullText);
+
             const provName = addr.city || addr.state || addr.province || '';
             const distName = addr.city_district || addr.district || addr.county || addr.suburb || '';
             const wardName = addr.quarter || addr.suburb || addr.ward || addr.village || addr.neighbourhood || '';
-            const roadName = [addr.house_number, addr.road].filter(Boolean).join(' ') || geoData.display_name.split(',')[0];
+            const roadName = [addr.house_number, addr.road].filter(Boolean).join(' ') || displayName.split(',')[0];
 
-            gpsStatusText.innerText = `Đã tìm thấy: ${roadName}, ${wardName}, ${distName}, ${provName}. Đang đồng bộ GHN...`;
+            gpsStatusText.innerText = `Đã tìm thấy: ${roadName || displayName.substring(0, 45)}. Đang khớp GHN...`;
 
-            // Tự động điền số nhà, đường
+            // Tự động điền số nhà, đường chi tiết
             if (roadName && specificAddressInput) {
                 specificAddressInput.value = roadName;
             }
@@ -753,56 +767,44 @@ document.addEventListener("DOMContentLoaded", function () {
                 await new Promise(resolve => loadProvinces(resolve));
             }
 
-            // 1. Khớp Tỉnh/Thành phố (Lọc bỏ các tỉnh test như 'Hà Nội 02')
-            const normProv = normalizeVietnamese(provName);
-            const validProvinces = ghnProvincesCache.filter(p => !p.ProvinceName.match(/0[1-9]|\btest\b/i));
-            const provincePool = validProvinces.length > 0 ? validProvinces : ghnProvincesCache;
-
-            // Ưu tiên khớp chính xác 100% trước
-            let matchedProv = provincePool.find(p => normalizeVietnamese(p.ProvinceName) === normProv);
-
-            if (!matchedProv) {
-                matchedProv = provincePool.find(p => {
-                    const normP = normalizeVietnamese(p.ProvinceName);
-                    return normProv.includes(normP) || normP.includes(normProv);
-                });
+            // 1. Khớp Tỉnh / Thành phố
+            let matchedProv = null;
+            let bestProvLen = 0;
+            const normSpecificProv = normalizeVietnamese(provName);
+            if (normSpecificProv) {
+                matchedProv = ghnProvincesCache.find(p => normalizeVietnamese(p.ProvinceName) === normSpecificProv);
             }
-
-            // Nếu không tìm thấy, thử fallback theo từ khóa Hà Nội / TP.HCM
             if (!matchedProv) {
-                if (normProv.includes('ha noi') || normProv.includes('hn')) {
-                    matchedProv = provincePool.find(p => p.ProvinceID === 201 || normalizeVietnamese(p.ProvinceName) === 'ha noi');
-                } else if (normProv.includes('ho chi minh') || normProv.includes('hcm') || normProv.includes('sai gon')) {
-                    matchedProv = provincePool.find(p => p.ProvinceID === 202 || normalizeVietnamese(p.ProvinceName) === 'ho chi minh');
+                for (const p of ghnProvincesCache) {
+                    const pClean = normalizeVietnamese(p.ProvinceName);
+                    if (pClean && matchTextBoundary(normFullText, pClean) && pClean.length > bestProvLen) {
+                        matchedProv = p;
+                        bestProvLen = pClean.length;
+                    }
                 }
             }
-
-            if (!matchedProv && provincePool.length > 0) {
-                matchedProv = provincePool[0];
+            if (!matchedProv) {
+                if (matchTextBoundary(normFullText, 'ha noi') || matchTextBoundary(normFullText, 'hn')) {
+                    matchedProv = ghnProvincesCache.find(p => p.ProvinceID === 201 || normalizeVietnamese(p.ProvinceName) === 'ha noi');
+                } else if (matchTextBoundary(normFullText, 'ho chi minh') || matchTextBoundary(normFullText, 'hcm') || matchTextBoundary(normFullText, 'sai gon')) {
+                    matchedProv = ghnProvincesCache.find(p => p.ProvinceID === 202 || normalizeVietnamese(p.ProvinceName) === 'ho chi minh');
+                } else if (matchTextBoundary(normFullText, 'da nang')) {
+                    matchedProv = ghnProvincesCache.find(p => p.ProvinceID === 203 || normalizeVietnamese(p.ProvinceName) === 'da nang');
+                }
             }
-
-            if (!matchedProv) throw new Error("Không tìm thấy Tỉnh/Thành GHN phù hợp.");
+            if (!matchedProv && ghnProvincesCache.length > 0) {
+                matchedProv = ghnProvincesCache[0];
+            }
+            if (!matchedProv) throw new Error("Không tìm thấy Tỉnh/Thành phù hợp.");
 
             provinceSelect.value = matchedProv.ProvinceID;
             provinceNameInput.value = matchedProv.ProvinceName;
 
-            // 2. Tải danh sách Quận/Huyện của Tỉnh này (có cơ chế Retry nếu trúng mã tỉnh rỗng)
+            // 2. Tải danh sách Quận/Huyện của Tỉnh này
             districtSelect.innerHTML = '<option value="">-- Đang đồng bộ Quận/Huyện GHN... --</option>';
             districtSelect.disabled = true;
 
             let distRes = await fetch(districtsUrl.replace('__PROVINCE__', matchedProv.ProvinceID)).then(r => r.json());
-            
-            // Nếu tỉnh này trả về rỗng (như các mã test), thử tìm mã tỉnh khác có tên tương tự
-            if (!distRes.data || distRes.data.length === 0) {
-                const altProv = ghnProvincesCache.find(p => p.ProvinceID !== matchedProv.ProvinceID && normalizeVietnamese(p.ProvinceName) === normalizeVietnamese(matchedProv.ProvinceName));
-                if (altProv) {
-                    matchedProv = altProv;
-                    provinceSelect.value = matchedProv.ProvinceID;
-                    provinceNameInput.value = matchedProv.ProvinceName;
-                    distRes = await fetch(districtsUrl.replace('__PROVINCE__', matchedProv.ProvinceID)).then(r => r.json());
-                }
-            }
-
             if (!distRes.data || distRes.data.length === 0) {
                 throw new Error(`Không tải được danh sách quận/huyện cho ${matchedProv.ProvinceName}`);
             }
@@ -815,16 +817,24 @@ document.addEventListener("DOMContentLoaded", function () {
             districtSelect.disabled = false;
 
             // Khớp Quận/Huyện
-            const normDist = normalizeVietnamese(distName);
-            let matchedDist = distRes.data.find(d => normalizeVietnamese(d.DistrictName) === normDist);
-
-            if (!matchedDist) {
-                matchedDist = distRes.data.find(d => {
-                    const normD = normalizeVietnamese(d.DistrictName);
-                    return normDist.includes(normD) || normD.includes(normDist);
-                });
+            let matchedDist = null;
+            let bestDistLen = 0;
+            const normSpecificDist = normalizeVietnamese(distName);
+            if (normSpecificDist) {
+                matchedDist = distRes.data.find(d => normalizeVietnamese(d.DistrictName) === normSpecificDist);
             }
-
+            if (!matchedDist) {
+                for (const d of distRes.data) {
+                    const dClean = normalizeVietnamese(d.DistrictName);
+                    if (dClean && matchTextBoundary(normFullText, dClean) && dClean.length > bestDistLen) {
+                        matchedDist = d;
+                        bestDistLen = dClean.length;
+                    }
+                }
+            }
+            if (!matchedDist && normFullText.includes('tu liem')) {
+                matchedDist = distRes.data.find(d => normalizeVietnamese(d.DistrictName) === 'nam tu liem') || distRes.data[0];
+            }
             if (!matchedDist && distRes.data.length > 0) {
                 matchedDist = distRes.data[0];
             }
@@ -849,16 +859,21 @@ document.addEventListener("DOMContentLoaded", function () {
             wardSelect.disabled = false;
 
             // Khớp Phường/Xã
-            const normWard = normalizeVietnamese(wardName);
-            let matchedWard = wardRes.data.find(w => normalizeVietnamese(w.WardName) === normWard);
-
-            if (!matchedWard) {
-                matchedWard = wardRes.data.find(w => {
-                    const normW = normalizeVietnamese(w.WardName);
-                    return normWard.includes(normW) || normW.includes(normWard);
-                });
+            let matchedWard = null;
+            let bestWardLen = 0;
+            const normSpecificWard = normalizeVietnamese(wardName);
+            if (normSpecificWard) {
+                matchedWard = wardRes.data.find(w => normalizeVietnamese(w.WardName) === normSpecificWard);
             }
-
+            if (!matchedWard) {
+                for (const w of wardRes.data) {
+                    const wClean = normalizeVietnamese(w.WardName);
+                    if (wClean && matchTextBoundary(normFullText, wClean) && wClean.length > bestWardLen) {
+                        matchedWard = w;
+                        bestWardLen = wClean.length;
+                    }
+                }
+            }
             if (!matchedWard && wardRes.data.length > 0) {
                 matchedWard = wardRes.data[0];
             }

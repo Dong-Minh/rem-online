@@ -118,4 +118,23 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Consultation::class);
     }
+
+    // ==========================================
+    // EMAIL OTP NOTIFICATION
+    // ==========================================
+
+    public function sendOtpNotification(string $otp): void
+    {
+        \Illuminate\Support\Facades\Mail::to($this->email)->send(new \App\Mail\SendOtpMail($this, $otp));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $otp = $this->otp_code ?: str_pad((string) mt_rand(100000, 999999), 6, '0', STR_PAD_LEFT);
+        $this->otp_code = $otp;
+        $this->otp_expires_at = now()->addMinutes(10);
+        $this->save();
+
+        $this->sendOtpNotification($otp);
+    }
 }

@@ -20,23 +20,19 @@ class EmailVerificationNotificationController extends Controller
         }
 
         $otp = str_pad((string) mt_rand(100000, 999999), 6, '0', STR_PAD_LEFT);
+        $user->otp_code = $otp;
+        $user->otp_expires_at = now()->addMinutes(10);
+        $user->save();
+
+        \Illuminate\Support\Facades\Cache::put('verification_otp_' . $user->id, $otp, now()->addMinutes(10));
         session(['verification_otp' => $otp]);
-        \Illuminate\Support\Facades\Cache::put('verification_otp_' . $user->id, $otp, now()->addMinutes(30));
 
         try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'otp_code')) {
-                $user->otp_code = $otp;
-                $user->otp_expires_at = now()->addMinutes(30);
-                $user->save();
-            }
-        } catch (\Throwable $e) {}
-
-        try {
-            $user->sendEmailVerificationNotification();
+            $user->sendOtpNotification($otp);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Không thể gửi lại mail xác thực:', ['error' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::error('Không thể gửi lại mail xác thực: ' . $e->getMessage());
         }
 
-        return back()->with('status', 'verification-link-sent')->with('success', 'Mã xác thực OTP mới đã được tạo và gửi thành công!');
+        return back()->with('success', 'Mã xác thực OTP mới đã được gửi tới email ' . $user->email . '!');
     }
 }

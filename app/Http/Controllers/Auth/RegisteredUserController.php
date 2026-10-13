@@ -54,21 +54,18 @@ class RegisteredUserController extends Controller
         ]);
 
         $otp = str_pad((string) mt_rand(100000, 999999), 6, '0', STR_PAD_LEFT);
+        $user->otp_code = $otp;
+        $user->otp_expires_at = now()->addMinutes(10);
+        $user->save();
+
+        \Illuminate\Support\Facades\Cache::put('verification_otp_' . $user->id, $otp, now()->addMinutes(10));
         session(['verification_otp' => $otp]);
-        \Illuminate\Support\Facades\Cache::put('verification_otp_' . $user->id, $otp, now()->addMinutes(30));
 
+        // Gửi email chứa mã OTP thực tế qua Gmail SMTP
         try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'otp_code')) {
-                $user->otp_code = $otp;
-                $user->otp_expires_at = now()->addMinutes(30);
-                $user->save();
-            }
-        } catch (\Throwable $e) {}
-
-        try {
-            event(new Registered($user));
+            $user->sendOtpNotification($otp);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Không thể gửi mail xác thực:', ['error' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::error('Lỗi gửi email OTP: ' . $e->getMessage());
         }
 
         Auth::login($user);
@@ -76,7 +73,7 @@ class RegisteredUserController extends Controller
         // Gộp giỏ hàng session (nếu có chọn trước đó) vào tài khoản vừa tạo
         app(\App\Services\CartService::class)->mergeSessionCartToUser($user);
 
-        // Yêu cầu người dùng xác thực email trước khi mua hàng
-        return redirect()->route('verification.notice')->with('success', 'Đăng ký tài khoản thành công! Vui lòng nhập mã OTP hoặc kích hoạt nhanh để bắt đầu đặt may rèm.');
+        // Chuyển hướng sang trang nhập OTP xác thực
+        return redirect()->route('verification.notice')->with('success', 'Đăng ký tài khoản thành công! Mã OTP 6 số đã được gửi tới email ' . $user->email . '. Vui lòng kiểm tra hộp thư (hoặc mục Spam).');
     }
 }

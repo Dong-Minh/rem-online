@@ -41,11 +41,31 @@ class GHNService
     }
 
     /**
-     * Lấy danh sách Tỉnh/Thành phố trực tiếp từ GHN API
+     * Dữ liệu địa giới hành chính Việt Nam (dự phòng khi sandbox GHN bị timeout/404)
+     */
+    protected function getLocalLocationsData(): array
+    {
+        static $cached = null;
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        $path = storage_path('app/vietnam_locations.json');
+        if (file_exists($path)) {
+            $cached = json_decode(file_get_contents($path), true) ?: [];
+        } else {
+            $cached = [];
+        }
+
+        return $cached;
+    }
+
+    /**
+     * Lấy danh sách Tỉnh/Thành phố trực tiếp từ GHN API (hoặc bộ dữ liệu chuẩn 63 tỉnh thành)
      */
     public function getProvinces(): array
     {
-        // 1. Thử GET
+        // 1. Thử GET GHN API
         $res = $this->get('/master-data/province');
         if (!empty($res['data']) && is_array($res['data'])) {
             return $res;
@@ -57,8 +77,37 @@ class GHNService
             return $resPost;
         }
 
-        Log::warning('GHN getProvinces thất bại:', ['res' => $res, 'resPost' => $resPost]);
-        return $res;
+        Log::warning('GHN API getProvinces không khả dụng, chuyển sang dữ liệu chuẩn 63 Tỉnh/Thành:', ['res' => $res]);
+
+        $data = $this->getLocalLocationsData();
+        $provinces = [];
+        foreach ($data as $item) {
+            $code = (int) $item['code'];
+            // GHN standard mapping for top cities
+            $pid = match ($code) {
+                1 => 201,  // Hà Nội
+                79 => 202, // TP Hồ Chí Minh
+                48 => 203, // Đà Nẵng
+                31 => 204, // Hải Phòng
+                92 => 205, // Cần Thơ
+                default => $code,
+            };
+
+            $name = $item['name'];
+            $cleanName = preg_replace('/^(Thành phố|Tỉnh)\s+/ui', '', $name);
+
+            $provinces[] = [
+                'ProvinceID' => $pid,
+                'ProvinceName' => $cleanName,
+                'Code' => (string) $code,
+            ];
+        }
+
+        return [
+            'code' => 200,
+            'message' => 'Success',
+            'data' => $provinces,
+        ];
     }
 
     /**
@@ -81,8 +130,43 @@ class GHNService
             return $resGet;
         }
 
-        Log::warning('GHN getDistricts thất bại:', ['province_id' => $provinceId, 'res' => $resPost]);
-        return $resPost;
+        Log::warning('GHN API getDistricts không khả dụng, chuyển sang dữ liệu chuẩn Quận/Huyện:', ['province_id' => $provinceId]);
+
+        $data = $this->getLocalLocationsData();
+        $matchedProvince = null;
+        foreach ($data as $p) {
+            $code = (int) $p['code'];
+            $pid = match ($code) {
+                1 => 201,
+                79 => 202,
+                48 => 203,
+                31 => 204,
+                92 => 205,
+                default => $code,
+            };
+
+            if ($pid === $provinceId || $code === $provinceId) {
+                $matchedProvince = $p;
+                break;
+            }
+        }
+
+        $districts = [];
+        if ($matchedProvince && !empty($matchedProvince['districts'])) {
+            foreach ($matchedProvince['districts'] as $d) {
+                $districts[] = [
+                    'DistrictID' => (int) $d['code'],
+                    'DistrictName' => $d['name'],
+                    'ProvinceID' => $provinceId,
+                ];
+            }
+        }
+
+        return [
+            'code' => 200,
+            'message' => 'Success',
+            'data' => $districts,
+        ];
     }
 
     /**
@@ -105,8 +189,35 @@ class GHNService
             return $resGet;
         }
 
-        Log::warning('GHN getWards thất bại:', ['district_id' => $districtId, 'res' => $resPost]);
-        return $resPost;
+        Log::warning('GHN API getWards không khả dụng, chuyển sang dữ liệu chuẩn Phường/Xã:', ['district_id' => $districtId]);
+
+        $data = $this->getLocalLocationsData();
+        $matchedDistrict = null;
+        foreach ($data as $p) {
+            foreach ($p['districts'] as $d) {
+                if ((int) $d['code'] === $districtId) {
+                    $matchedDistrict = $d;
+                    break 2;
+                }
+            }
+        }
+
+        $wards = [];
+        if ($matchedDistrict && !empty($matchedDistrict['wards'])) {
+            foreach ($matchedDistrict['wards'] as $w) {
+                $wards[] = [
+                    'WardCode' => (string) $w['code'],
+                    'WardName' => $w['name'],
+                    'DistrictID' => $districtId,
+                ];
+            }
+        }
+
+        return [
+            'code' => 200,
+            'message' => 'Success',
+            'data' => $wards,
+        ];
     }
 
     /**
