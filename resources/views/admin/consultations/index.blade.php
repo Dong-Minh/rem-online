@@ -146,7 +146,7 @@
                                 <a href="{{ route('admin.consultations.show', $item) }}" class="fw-bold text-decoration-none text-dark font-monospace hover-gold d-block">
                                     {{ $item->code }}
                                 </a>
-                                <small class="text-muted" style="font-size: 0.72rem;">{{ $item->created_at->format('d/m H:i') }}</small>
+                                <small class="text-muted" style="font-size: 0.72rem;">{{ $item->created_at ? $item->created_at->format('d/m H:i') : '' }}</small>
                             </td>
                             <td>
                                 <div class="fw-semibold text-dark">{{ $item->customer_name }}</div>
@@ -166,7 +166,7 @@
                             </td>
                             <td>
                                 <div class="fw-bold text-dark small">
-                                    <i class="bi bi-calendar-event me-1 text-warning"></i>{{ $item->preferred_date->format('d/m/Y') }}
+                                    <i class="bi bi-calendar-event me-1 text-warning"></i>{{ $item->preferred_date ? $item->preferred_date->format('d/m/Y') : 'Chưa định ngày' }}
                                 </div>
                                 <div class="text-muted small" style="font-size: 0.75rem;">
                                     {{ $item->time_slot_text }}

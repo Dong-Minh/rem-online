@@ -259,10 +259,10 @@
                             <span>Lịch Hẹn Khảo Sát</span>
                         </div>
                         @php
-                            $pendingConsultationsCount = \App\Models\Consultation::where('status', 'pending')->count();
+                            $pendingConsultationsCount = \App\Models\Consultation::whereIn('status', ['pending', 'new'])->count();
                         @endphp
                         @if($pendingConsultationsCount > 0)
-                            <span class="badge bg-warning text-dark rounded-pill" style="font-size: 0.7rem;">{{ $pendingConsultationsCount }}</span>
+                            <span class="badge bg-warning text-dark rounded-pill px-2" style="font-size: 0.72rem;">{{ $pendingConsultationsCount }}</span>
                         @endif
                     </a>
                 </li>
@@ -305,6 +305,17 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
+                    @php
+                        $navPendingConsultations = \App\Models\Consultation::whereIn('status', ['pending', 'new'])->count();
+                    @endphp
+                    @if($navPendingConsultations > 0)
+                        <a href="{{ route('admin.consultations.index') }}" class="btn btn-sm btn-outline-warning text-dark position-relative d-flex align-items-center gap-2 shadow-sm px-3 py-1 rounded-pill" title="Lịch hẹn khảo sát mới chờ tiếp nhận">
+                            <i class="bi bi-calendar-event text-warning"></i>
+                            <span class="small fw-bold d-none d-sm-inline">{{ $navPendingConsultations }} Lịch Hẹn Mới</span>
+                            <span class="badge bg-danger rounded-pill">{{ $navPendingConsultations }}</span>
+                        </a>
+                    @endif
+
                     <div class="dropdown">
                         <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2 border" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle fs-5 text-secondary"></i>

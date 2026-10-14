@@ -4,6 +4,23 @@
 @section('page_title', 'Tổng Quan Hệ Thống')
 
 @section('content')
+@if(isset($stats['pending_consultations']) && $stats['pending_consultations'] > 0)
+    <div class="alert alert-warning border-0 shadow-sm rounded-4 p-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-warning text-dark p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <i class="bi bi-calendar-event fs-5"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold text-dark mb-0">Có {{ $stats['pending_consultations'] }} lịch hẹn khảo sát rèm mới đang chờ tiếp nhận!</h6>
+                <small class="text-muted">Khách hàng đã gửi yêu cầu mang mẫu vải và đo đạc tại nhà, vui lòng liên hệ xác nhận và điều phối thợ.</small>
+            </div>
+        </div>
+        <a href="{{ route('admin.consultations.index') }}" class="btn btn-dark btn-gold px-3 py-2 fw-semibold rounded-pill shadow-sm">
+            <i class="bi bi-arrow-right-circle me-1"></i> Xử lý lịch hẹn ngay
+        </a>
+    </div>
+@endif
+
 <div class="row g-4 mb-4">
     <!-- Stat 1: Sản phẩm -->
     <div class="col-12 col-sm-6 col-xl-3">
@@ -176,6 +193,81 @@
                         @empty
                             <tr>
                                 <td colspan="3" class="text-center py-4 text-muted">Chưa có sản phẩm nào.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bảng Lịch Hẹn Khảo Sát Mới Nhất -->
+<div class="row g-4 mt-1">
+    <div class="col-12">
+        <div class="card card-custom">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-calendar-check text-warning me-1"></i> Lịch Hẹn Khảo Sát & Đo Đạc Tận Nhà Gần Đây
+                </h6>
+                <a href="{{ route('admin.consultations.index') }}" class="btn btn-sm btn-outline-dark">
+                    Xem tất cả lịch hẹn <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-muted small">
+                        <tr>
+                            <th class="ps-3">Mã Lịch</th>
+                            <th>Khách Hàng</th>
+                            <th>Địa Chỉ</th>
+                            <th>Thời Gian Hẹn</th>
+                            <th>Dòng Rèm Quan Tâm</th>
+                            <th>Trạng Thái</th>
+                            <th class="text-end pe-3">Xem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($recentConsultations ?? [] as $cons)
+                            <tr>
+                                <td class="ps-3">
+                                    <a href="{{ route('admin.consultations.show', $cons) }}" class="fw-bold font-monospace text-dark text-decoration-none hover-gold">
+                                        {{ $cons->code }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="small fw-semibold text-dark">{{ $cons->customer_name }}</div>
+                                    <small class="text-muted">{{ $cons->phone }}</small>
+                                </td>
+                                <td>
+                                    <div class="small text-dark text-truncate" style="max-width: 220px;" title="{{ $cons->full_address }}">
+                                        {{ $cons->address }}
+                                    </div>
+                                    <small class="text-muted">{{ $cons->district }}, {{ $cons->province }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark small">
+                                        {{ $cons->preferred_date ? $cons->preferred_date->format('d/m/Y') : 'Chưa định ngày' }}
+                                    </div>
+                                    <small class="text-muted">{{ $cons->time_slot_text }}</small>
+                                </td>
+                                <td>
+                                    <div class="small text-truncate" style="max-width: 200px;" title="{{ $cons->curtain_types_text }}">
+                                        {{ $cons->curtain_types_text }}
+                                    </div>
+                                </td>
+                                <td>
+                                    {!! $cons->status_badge !!}
+                                </td>
+                                <td class="text-end pe-3">
+                                    <a href="{{ route('admin.consultations.show', $cons) }}" class="btn btn-sm btn-light border" title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">Chưa có lịch hẹn khảo sát nào.</td>
                             </tr>
                         @endforelse
                     </tbody>

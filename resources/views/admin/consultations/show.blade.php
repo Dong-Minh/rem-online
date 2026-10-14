@@ -13,7 +13,7 @@
             </a>
             <div>
                 <h4 class="fw-bold mb-0 text-dark">Lịch Hẹn: <span class="font-monospace text-gold">{{ $consultation->code }}</span></h4>
-                <small class="text-muted">Đăng ký lúc: {{ $consultation->created_at->format('d/m/Y H:i:s') }} ({{ $consultation->created_at->diffForHumans() }})</small>
+                <small class="text-muted">Đăng ký lúc: {{ $consultation->created_at ? $consultation->created_at->format('d/m/Y H:i:s') : 'N/A' }} {{ $consultation->created_at ? '(' . $consultation->created_at->diffForHumans() . ')' : '' }}</small>
             </div>
         </div>
 
@@ -88,7 +88,7 @@
                         <div class="col-12 col-sm-6">
                             <div class="p-3 border rounded-3 bg-light">
                                 <label class="text-muted small d-block mb-1">Ngày Hẹn Khảo Sát:</label>
-                                <span class="fw-bold text-dark fs-5"><i class="bi bi-calendar-event me-2 text-warning"></i>{{ $consultation->preferred_date->format('d/m/Y') }}</span>
+                                <span class="fw-bold text-dark fs-5"><i class="bi bi-calendar-event me-2 text-warning"></i>{{ $consultation->preferred_date ? $consultation->preferred_date->format('d/m/Y') : 'Chưa định ngày' }}</span>
                             </div>
                         </div>
                         <div class="col-12 col-sm-6">

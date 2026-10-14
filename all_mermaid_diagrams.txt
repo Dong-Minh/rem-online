@@ -1,0 +1,591 @@
+# ==============================================================================
+# TỔNG HỢP 19 SƠ ĐỒ MERMAID - BÁO CÁO KIẾN TRÚC & THIẾT KẾ PHẦN MỀM (RÈM ONLINE)
+# (Copy mã bên dưới dán trực tiếp vào https://mermaid.live hoặc Notion, Draw.io)
+# ==============================================================================
+
+### HÌNH 1.1: VỊ TRÍ CỦA THIẾT KẾ PHẦN MỀM TRONG SDLC
+```mermaid
+flowchart LR
+    A[Phân tích Yêu cầu] --> B[Thiết kế Kiến trúc & Chi tiết]
+    B --> C[Hiện thực hóa / Lập trình]
+    C --> D[Kiểm thử & Đảm bảo CL]
+    D --> E[Triển khai & Vận hành]
+    
+    style B fill:#d4edda,stroke:#28a745,stroke-width:2px
+```
+
+### HÌNH 1.2: QUÁ TRÌNH CHUYỂN ĐỔI TỪ YÊU CẦU SANG MÔ HÌNH THIẾT KẾ
+```mermaid
+flowchart TD
+    subgraph YC[Miền Yêu Cầu]
+        R1[Yêu cầu chức năng - Use Cases]
+        R2[Yêu cầu phi chức năng - QARs]
+    end
+    
+    subgraph CD[Quá trình Chuyển đổi & Ra quyết định]
+        T1[Áp dụng Nguyên lý Thiết kế & Tách mối quan tâm]
+        T2[Lựa chọn Phong cách Kiến trúc]
+    end
+    
+    subgraph TK[Miền Mô Hình Thiết Kế]
+        D1[Thiết kế Kiến trúc - Tầng / Thành phần]
+        D2[Thiết kế Dữ liệu - ERD / Lược đồ CSDL]
+        D3[Thiết kế Giao diện - UI Sitemap / Wireframe]
+        D4[Thiết kế Thủ tục - Sơ đồ Lớp / Tuần tự / Trạng thái]
+    end
+    
+    R1 --> T1
+    R2 --> T2
+    T1 --> D1
+    T1 --> D3
+    T2 --> D1
+    T1 --> D2
+    T1 --> D4
+```
+
+### HÌNH 1.3: MÔ HÌNH TƯƠNG QUAN COHESION VÀ COUPLING
+```mermaid
+flowchart TD
+    subgraph Good[Thiết kế Tốt: High Cohesion & Low Coupling]
+        direction TB
+        subgraph M1[Module A: Quản lý Rèm]
+            A1[Tính diện tích m2] --- A2[Tính định mức vải]
+            A2 --- A3[Tra cứu đơn giá]
+        end
+        subgraph M2[Module B: Thanh toán MoMo]
+            B1[Tạo mã QR] --- B2[Xác thực IPN]
+            B2 --- B3[Ghi nhận giao dịch]
+        end
+        M1 == REST API / Event ==> M2
+    end
+```
+
+### HÌNH 1.4: CẤU TRÚC PHÂN TẦNG LAYERED ARCHITECTURE
+```mermaid
+flowchart TB
+    L1[1. Tầng Trình diễn - Presentation Layer]
+    L2[2. Tầng Nghiệp vụ - Business Logic / Service Layer]
+    L3[3. Tầng Truy cập Dữ liệu - Data Access / Repository Layer]
+    L4[4. Tầng Dữ liệu - Database Layer]
+    
+    L1 -->|Gọi hàm / Gửi DTO| L2
+    L2 -->|Truy vấn thực thể / Domain Object| L3
+    L3 -->|SQL / ORM Query| L4
+```
+
+### HÌNH 1.5: MÔ HÌNH LUỒNG DỮ LIỆU & ĐIỀU KHIỂN TRONG MVC
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Người dùng (User)
+    participant V as View (Giao diện)
+    participant C as Controller (Bộ điều khiển)
+    participant M as Model (Mô hình Dữ liệu)
+    
+    U->>V: Tương tác (Nhập kích thước rèm, Click Đặt may)
+    V->>C: Gửi HTTP Request (Data form)
+    C->>M: Gọi hàm xử lý tính toán & Lưu trữ
+    M-->>C: Trả về kết quả dữ liệu đã cập nhật
+    C-->>V: Chọn View và truyền dữ liệu hiển thị (Model data)
+    V-->>U: Hiển thị giao diện báo giá chi tiết
+```
+
+### HÌNH 2.1: SƠ ĐỒ USE CASE TỔNG THỂ HỆ THỐNG RÈM ONLINE
+```mermaid
+flowchart LR
+    KhachHang((Khách hàng))
+    NhanVien((Thợ kỹ thuật))
+    QuanTri((Quản trị viên))
+    MoMo((Cổng MoMo))
+    GHN((Đơn vị GHN))
+
+    subgraph System[Hệ Thống Rèm Online]
+        UC1[UC01: Tra cứu & Xem mẫu rèm]
+        UC2[UC02: Tùy biến & Tính giá may đo trực tuyến]
+        UC3[UC03: Đặt hàng & Đặt cọc / Thanh toán]
+        UC4[UC04: Đăng ký lịch hẹn khảo sát tại nhà]
+        UC5[UC05: Tiếp nhận & Cập nhật kết quả đo đạc]
+        UC6[UC06: Quản lý danh mục & Định mức vật tư]
+        UC7[UC07: Phân công lịch thợ đo đạc]
+        UC8[UC08: Quản lý & Cập nhật đơn hàng]
+        UC9[UC09: Thống kê doanh thu & Báo cáo]
+    end
+
+    KhachHang --> UC1
+    KhachHang --> UC2
+    KhachHang --> UC3
+    KhachHang --> UC4
+
+    NhanVien --> UC5
+
+    QuanTri --> UC6
+    QuanTri --> UC7
+    QuanTri --> UC8
+    QuanTri --> UC9
+
+    UC3 ..-> MoMo
+    UC8 ..-> GHN
+```
+
+### HÌNH 2.2: SƠ ĐỒ HOẠT ĐỘNG QUY TRÌNH TÍNH GIÁ MAY ĐO RÈM THEO M2
+```mermaid
+flowchart TD
+    Start([Bắt đầu]) --> Step1[Chọn loại rèm, mẫu vải, phụ kiện, kiểu may]
+    Step1 --> Step2[Nhập chiều rộng W và chiều cao H theo mét]
+    Step2 --> Decision1{W > 0 và H > 0?}
+    
+    Decision1 -- Không --> Error1[Báo lỗi kích thước không hợp lệ] --> Step2
+    Decision1 -- Có --> CalcArea[Tính Diện tích S = W * H]
+    
+    CalcArea --> Decision2{S < S_min 1.0 m2?}
+    Decision2 -- Có --> ApplyMin[Gán S_tinh_gia = S_min 1.0 m2]
+    Decision2 -- Không --> ApplyReal[Gán S_tinh_gia = S]
+    
+    ApplyMin --> CalcFabric[Tính định mức mét vải = W * He_so_nhun 2.5]
+    ApplyReal --> CalcFabric
+    
+    CalcFabric --> CalcCost[Tổng tiền = S_tinh_gia * Don_gia_m2 + Phu_kien + Cong_lap_dat]
+    CalcCost --> Display[Hiển thị bảng phân tích chi phí trực quan]
+    Display --> End([Kết thúc])
+```
+
+### HÌNH 2.3: SƠ ĐỒ HOẠT ĐỘNG QUY TRÌNH TIẾP NHẬN & KHẢO SÁT ĐO ĐẠC TẠI NHÀ
+```mermaid
+flowchart TD
+    Start([Khách hàng gửi yêu cầu khảo sát]) --> SysCheck[Hệ thống lưu trạng thái PENDING]
+    SysCheck --> AdminAssign[Admin phân công Thợ kỹ thuật]
+    AdminAssign --> TechReceive[Thợ nhận thông báo & Liên hệ hẹn giờ]
+    TechReceive --> Visit[Thợ đến tận nhà mang mẫu vải & đo đạc]
+    Visit --> TechInput[Thợ nhập số đo thực tế vào ứng dụng di động]
+    TechInput --> GenDraft[Hệ thống tự động sinh Đơn hàng may đo dự thảo]
+    GenDraft --> CustConfirm{Khách duyệt mẫu & giá?}
+    CustConfirm -- Từ chối --> Cancel([Hủy khảo sát / Lưu ghi chú])
+    CustConfirm -- Đồng ý --> Deposit[Khách đặt cọc 30% - 50%]
+    Deposit --> ToProd([Chuyển Đơn sang Xưởng may])
+```
+
+### HÌNH 2.4: SƠ ĐỒ HOẠT ĐỘNG QUY TRÌNH XỬ LÝ ĐƠN HÀNG, THANH TOÁN & GHN
+```mermaid
+flowchart TD
+    Start([Khách xác nhận giỏ hàng]) --> SelectPay{Chọn hình thức thanh toán}
+    SelectPay -- MoMo QR --> CreateMoMo[Tạo phiên thanh toán MoMo]
+    CreateMoMo --> ScanPay[Khách quét mã thanh toán]
+    ScanPay --> MoMoCallback{MoMo trả về thành công?}
+    MoMoCallback -- Thất bại --> PayFail[Báo lỗi & Cho phép chọn lại] --> SelectPay
+    MoMoCallback -- Thành công --> OrderPaid[Cập nhật trạng thái: ĐÃ THANH TOÁN]
+    
+    SelectPay -- COD / Đặt cọc --> OrderPending[Cập nhật trạng thái: ĐÃ XÁC NHẬN]
+    
+    OrderPaid --> Factory[Xưởng thực hiện cắt may & KCS thành phẩm]
+    OrderPending --> Factory
+    
+    Factory --> CreateGHN[Tạo đơn vận chuyển trên API GHN]
+    CreateGHN --> GHNPick[Shipper GHN đến lấy hàng]
+    GHNPick --> GHNDelivery[Vận chuyển & Giao tận tay khách]
+    GHNDelivery --> Complete([Đơn hàng Hoàn tất])
+```
+
+### HÌNH 3.1: SƠ ĐỒ KIẾN TRÚC TỔNG THỂ 4 TẦNG (SYSTEM ARCHITECTURE)
+```mermaid
+flowchart TB
+    subgraph ClientLayer[1. Tầng Trình diễn - Presentation Layer]
+        WebClient[Web Application - React.js / Vite / TailwindCSS / Zustand]
+        MobileClient[PWA / Mobile Web - Responsive cho Thợ đo đạc]
+    end
+
+    subgraph ApiGatewayLayer[2. Tầng API Gateway & Điều hướng]
+        Nginx[Nginx Reverse Proxy & SSL Termination]
+    end
+
+    subgraph AppServiceLayer[3. Tầng Dịch vụ Ứng dụng - Business Logic Layer: NestJS / Express]
+        AuthSvc[Auth & Role-Based Guard]
+        CurtainSvc[Curtain Pricing & Calculation Engine]
+        OrderSvc[Order & Booking Management Service]
+        SurveySvc[Survey & Site Consultation Service]
+        PaymentSvc[MoMo Payment Integration Service]
+        ShippingSvc[GHN Logistics Integration Service]
+    end
+
+    subgraph DataStorageLayer[4. Tầng Lưu trữ & Dữ liệu - Data Layer]
+        Postgres[(PostgreSQL 16 - CSDL Quan hệ Lưu trữ chính)]
+        Redis[(Redis Cache - Session, Token Blacklist & Đơn giá rèm)]
+        Cloudinary[(Cloudinary Storage - Lưu trữ ảnh mẫu rèm & hiện trạng đo)]
+    end
+
+    ClientLayer -->|HTTPS / REST API / JSON| Nginx
+    Nginx --> AuthSvc
+    Nginx --> CurtainSvc
+    Nginx --> OrderSvc
+    Nginx --> SurveySvc
+    
+    OrderSvc --> PaymentSvc
+    OrderSvc --> ShippingSvc
+
+    AuthSvc --> Postgres
+    AuthSvc --> Redis
+    CurtainSvc --> Postgres
+    CurtainSvc --> Redis
+    OrderSvc --> Postgres
+    SurveySvc --> Postgres
+    SurveySvc --> Cloudinary
+```
+
+### HÌNH 3.2: SƠ ĐỒ PHÂN RÃ THÀNH PHẦN (COMPONENT DIAGRAM)
+```mermaid
+flowchart TB
+    subgraph UI_Module[Gói Giao Diện UI]
+        C_Catalog[Catalog & Configurator Component]
+        C_Booking[Booking Consultation Component]
+        C_Checkout[Cart & Checkout Component]
+        C_AdminDash[Admin / Tech Dashboard Component]
+    end
+
+    subgraph Core_Services[Gói Nghiệp Vụ Lõi Core Services]
+        S_Pricing[Pricing Engine Service]
+        S_Order[Order Workflow Service]
+        S_Survey[Survey Management Service]
+        S_Auth[Authentication Service]
+    end
+
+    subgraph External_Adapters[Gói Adapter Tích Hợp Ngoại Vi]
+        A_MoMo[MoMo Payment Gateway Adapter]
+        A_GHN[GHN Shipping Adapter]
+        A_Cloud[Cloudinary CDN Adapter]
+    end
+
+    subgraph Data_Access[Gói Truy Xuất CSDL]
+        Repo_User[User Repository]
+        Repo_Order[Order Repository]
+        Repo_Curtain[Curtain Repository]
+        Repo_Survey[Survey Repository]
+    end
+
+    C_Catalog --> S_Pricing
+    C_Booking --> S_Survey
+    C_Checkout --> S_Order
+    C_AdminDash --> S_Order
+    C_AdminDash --> S_Survey
+
+    S_Order --> A_MoMo
+    S_Order --> A_GHN
+    S_Survey --> A_Cloud
+
+    S_Auth --> Repo_User
+    S_Pricing --> Repo_Curtain
+    S_Order --> Repo_Order
+    S_Survey --> Repo_Survey
+```
+
+### HÌNH 4.1: SƠ ĐỒ QUAN HỆ THỰC THỂ (ERD)
+```mermaid
+erDiagram
+    USERS ||--o{ ORDERS : "places"
+    USERS ||--o{ CONSULTATION_BOOKINGS : "books"
+    USERS ||--o{ CONSULTATION_BOOKINGS : "assigned_to (Technician)"
+    USERS ||--o{ USER_ROLES : "has"
+    ROLES ||--o{ USER_ROLES : "belongs_to"
+
+    CURTAIN_CATEGORIES ||--o{ CURTAIN_PRODUCTS : "categorizes"
+    CURTAIN_PRODUCTS ||--o{ FABRIC_OPTIONS : "has_materials"
+    CURTAIN_PRODUCTS ||--o{ ACCESSORY_OPTIONS : "has_accessories"
+    CURTAIN_PRODUCTS ||--o{ ORDER_ITEMS : "ordered_in"
+
+    ORDERS ||--|{ ORDER_ITEMS : "contains"
+    ORDERS ||--o{ PAYMENT_TRANSACTIONS : "paid_via"
+    ORDERS ||--o{ SHIPMENTS : "delivered_via"
+
+    ORDER_ITEMS ||--o{ ITEM_ACCESSORIES : "includes"
+    ACCESSORY_OPTIONS ||--o{ ITEM_ACCESSORIES : "used_as"
+
+    USERS {
+        int id PK
+        string full_name
+        string email
+        string phone_number
+        string password_hash
+        string address
+        timestamp created_at
+    }
+
+    CURTAIN_PRODUCTS {
+        int id PK
+        int category_id FK
+        string product_code
+        string product_name
+        decimal base_price_per_m2
+        float default_fold_ratio
+        float min_billable_area
+        string image_url
+    }
+
+    ORDERS {
+        int id PK
+        int user_id FK
+        string order_code
+        decimal subtotal_amount
+        decimal discount_amount
+        decimal shipping_fee
+        decimal total_amount
+        decimal deposit_paid
+        string order_status
+        string payment_status
+        timestamp created_at
+    }
+
+    ORDER_ITEMS {
+        int id PK
+        int order_id FK
+        int product_id FK
+        int fabric_id FK
+        float width_meter
+        float height_meter
+        float calculated_area
+        float billable_area
+        decimal unit_price
+        decimal total_item_price
+    }
+
+    CONSULTATION_BOOKINGS {
+        int id PK
+        int customer_id FK
+        int technician_id FK
+        datetime appointment_time
+        string customer_address
+        string booking_status
+        text measurement_notes
+        timestamp created_at
+    }
+
+    PAYMENT_TRANSACTIONS {
+        int id PK
+        int order_id FK
+        string momo_trans_id
+        decimal amount
+        string pay_type
+        string transaction_status
+        timestamp created_at
+    }
+```
+
+### HÌNH 4.2: SƠ ĐỒ LỚP CHI TIẾT (CLASS DIAGRAM)
+```mermaid
+classDiagram
+    class User {
+        -int id
+        -string fullName
+        -string email
+        -string phoneNumber
+        -string passwordHash
+        -Role role
+        +login(credentials): Token
+        +updateProfile(data): bool
+    }
+
+    class CurtainProduct {
+        -int id
+        -string productCode
+        -string productName
+        -decimal basePricePerM2
+        -float defaultFoldRatio
+        -float minBillableArea
+        +calculateItemPrice(w, h, fabric, accessories): decimal
+    }
+
+    class Order {
+        -int id
+        -string orderCode
+        -decimal totalAmount
+        -decimal depositPaid
+        -OrderStatus status
+        -PaymentStatus paymentStatus
+        +addItem(item: OrderItem): void
+        +calculateTotal(): decimal
+        +updateStatus(newStatus): void
+    }
+
+    class OrderItem {
+        -int id
+        -float width
+        -float height
+        -float billableArea
+        -decimal unitPrice
+        -decimal itemTotal
+        +computeBillableArea(): float
+    }
+
+    class ConsultationBooking {
+        -int id
+        -DateTime appointmentTime
+        -string address
+        -BookingStatus status
+        -string measurementNotes
+        +assignTechnician(tech: User): void
+        +submitMeasurements(notes, specs): Order
+    }
+
+    class MoMoPaymentService {
+        +createPaymentSession(order: Order): string
+        +verifyIPNSignature(payload): bool
+        +processCallback(data): PaymentResult
+    }
+
+    class GHNShippingService {
+        +calculateFee(toDistrict, weight): decimal
+        +createShipmentOrder(order: Order): string
+        +trackDeliveryStatus(trackingCode): string
+    }
+
+    User "1" --> "0..*" Order : places
+    User "1" --> "0..*" ConsultationBooking : books
+    Order "1" *-- "1..*" OrderItem : contains
+    OrderItem "1" --> "1" CurtainProduct : refers to
+    ConsultationBooking --> Order : creates draft
+    Order ..> MoMoPaymentService : uses
+    Order ..> GHNShippingService : uses
+```
+
+### HÌNH 4.3: SƠ ĐỒ MÁY TRẠNG THÁI ĐƠN HÀNG (ORDER STATE MACHINE)
+```mermaid
+stateDiagram-v2
+    [*] --> DRAFT : Khách tạo giỏ / Thợ tạo đơn khảo sát
+    DRAFT --> PENDING_PAYMENT : Xác nhận đặt hàng
+    PENDING_PAYMENT --> PAID_DEPOSIT : Thanh toán cọc / MoMo thành công
+    PENDING_PAYMENT --> CANCELLED : Hết hạn thanh toán / Hủy đơn
+    PAID_DEPOSIT --> IN_PRODUCTION : Xưởng may tiếp nhận cắt may
+    IN_PRODUCTION --> QUALITY_CHECKED : May xong & Kiểm tra đạt KCS
+    QUALITY_CHECKED --> DELIVERING : Bàn giao đối tác GHN / Đi giao
+    DELIVERING --> COMPLETED : Giao thành công & Thu nốt COD
+    DELIVERING --> DELIVERY_FAILED : Không liên lạc được khách
+    DELIVERY_FAILED --> DELIVERING : Giao lại lần 2
+    DELIVERY_FAILED --> RETURNED : Chuyển hoàn về xưởng
+    COMPLETED --> [*]
+    CANCELLED --> [*]
+    RETURNED --> [*]
+```
+
+### HÌNH 4.4: SƠ ĐỒ MÁY TRẠNG THÁI LỊCH HẸN KHẢO SÁT
+```mermaid
+stateDiagram-v2
+    [*] --> SUBMITTED : Khách gửi yêu cầu khảo sát
+    SUBMITTED --> ASSIGNED : Admin phân công Thợ kỹ thuật
+    ASSIGNED --> CONTACTED : Thợ gọi xác nhận giờ với khách
+    CONTACTED --> MEASURING : Thợ đang có mặt tại nhà khách
+    MEASURING --> COMPLETED_CONVERTED : Đo xong & Khách chốt đặt cọc
+    MEASURING --> COMPLETED_NOT_CONVERTED : Đo xong nhưng khách chưa chốt
+    SUBMITTED --> REJECTED : Khách chủ động hủy hẹn
+    ASSIGNED --> REJECTED : Không liên lạc được khách
+    COMPLETED_CONVERTED --> [*]
+    COMPLETED_NOT_CONVERTED --> [*]
+    REJECTED --> [*]
+```
+
+### HÌNH 4.5: SƠ ĐỒ MÁY TRẠNG THÁI GIAO DỊCH MOMO
+```mermaid
+stateDiagram-v2
+    [*] --> CREATED : Sinh yêu cầu thanh toán & URL QR
+    CREATED --> USER_SCANNING : Khách mở App MoMo quét mã
+    USER_SCANNING --> SUCCESS : MoMo trừ tiền & gửi IPN thành công (code=0)
+    USER_SCANNING --> FAILED : Tài khoản không đủ số dư / Lỗi GD
+    USER_SCANNING --> EXPIRED : Quá hạn 15 phút không thanh toán
+    SUCCESS --> [*]
+    FAILED --> [*]
+    EXPIRED --> [*]
+```
+
+### HÌNH 5.1: SƠ ĐỒ CẤU TRÚC GIAO DIỆN VÀ ĐIỀU HƯỚNG MÀN HÌNH (SITEMAP UI)
+```mermaid
+flowchart TD
+    Home[Trang chủ - Landing Page]
+    
+    subgraph ClientPages[Phân hệ Khách hàng]
+        Catalog[Danh mục sản phẩm rèm]
+        Configurator[Bộ công cụ may đo & Tính giá 3D]
+        Booking[Trang đặt lịch khảo sát tại nhà]
+        Cart[Giỏ hàng & Đặt may]
+        Checkout[Thanh toán & Cổng MoMo]
+        Tracking[Tra cứu đơn hàng & Tiến độ may]
+    end
+
+    subgraph TechPages[Phân hệ Thợ Kỹ Thuật]
+        TechSchedule[Lịch hẹn khảo sát được phân công]
+        TechForm[Biểu mẫu nhập số đo & Tư vấn tại chỗ]
+    end
+
+    subgraph AdminPages[Phân hệ Quản Trị Viên]
+        AdminDash[Bảng điều khiển & Doanh thu]
+        AdminOrder[Quản lý xử lý đơn hàng & GHN]
+        AdminSurvey[Điều phối & Phân công lịch hẹn]
+        AdminProduct[Quản lý giá vải, phụ kiện, hệ số nhún]
+    end
+
+    Home --> Catalog
+    Home --> Booking
+    Home --> Tracking
+    Catalog --> Configurator
+    Configurator --> Cart
+    Cart --> Checkout
+    Booking --> TechSchedule
+    TechSchedule --> TechForm
+    TechForm --> Cart
+    AdminPages --> AdminDash
+    AdminPages --> AdminOrder
+    AdminPages --> AdminSurvey
+    AdminPages --> AdminProduct
+```
+
+### HÌNH 5.2: SƠ ĐỒ TUẦN TỰ QUY TRÌNH ĐẶT MAY RÈM VÀ THANH TOÁN MOMO
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as Khách hàng
+    participant UI as Giao diện Web (React)
+    participant API as Backend API (OrderService)
+    participant MoMo as MoMo Payment Gateway
+    participant DB as CSDL PostgreSQL
+
+    Customer->>UI: Nhập kích thước (W, H), chọn mẫu vải & phụ kiện
+    UI->>API: POST /api/v1/curtain/calculate-price
+    API-->>UI: Bảng phân tích chi phí may đo chi tiết
+    Customer->>UI: Nhấn "Đặt may & Thanh toán cọc"
+    UI->>API: POST /api/v1/orders/checkout (OrderDTO)
+    API->>DB: Ghi bản ghi Orders (Status: PENDING_PAYMENT)
+    API->>MoMo: Gọi API /v2/gateway/api/create (orderId, amount)
+    MoMo-->>API: Trả về payUrl & qrCodeUrl
+    API-->>UI: Trả về MoMo QR Code URL
+    UI-->>Customer: Hiển thị Popup QR Code MoMo
+    Customer->>MoMo: Mở App MoMo quét mã và xác nhận chuyển tiền
+    MoMo->>API: Webhook IPN POST /api/v1/payments/momo-ipn (Signature, resultCode=0)
+    API->>API: Xác thực chữ ký bí mật (HMAC SHA256)
+    API->>DB: UPDATE Orders SET status='PAID_DEPOSIT', payment_status='PAID'
+    API-->>MoMo: HTTP 204 No Content (Xác nhận đã nhận IPN)
+    API-->>UI: Gửi thông báo WebSocket / Polling: Thanh toán thành công!
+    UI-->>Customer: Hiển thị màn hình Đặt may thành công & Mã vận đơn
+```
+
+### HÌNH 5.3: SƠ ĐỒ TUẦN TỰ QUY TRÌNH ĐĂNG KÝ VÀ KHẢO SÁT ĐO ĐẠC TẠI NHÀ
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as Khách hàng
+    actor Tech as Thợ Kỹ thuật
+    participant UI as Giao diện Khách & Thợ
+    participant API as Backend API (BookingService)
+    participant DB as CSDL PostgreSQL
+
+    Customer->>UI: Điền Form: Họ tên, SĐT, Địa chỉ, Ngày giờ mong muốn
+    UI->>API: POST /api/v1/consultations/book
+    API->>DB: Lưu bản ghi Consultation (Status: SUBMITTED)
+    API-->>UI: Thông báo đăng ký lịch hẹn thành công
+    
+    Note over API: Admin điều phối thợ trên Dashboard
+    API->>DB: Gán technician_id & Status: ASSIGNED
+    API-->>Tech: Gửi Push Notification / SMS: "Có lịch khảo sát mới"
+
+    Tech->>UI: Mở App xem địa chỉ và bấm "Đang khảo sát"
+    Tech->>Customer: Đến tận nhà mang bảng mẫu, đo thực tế từng ô cửa
+    Tech->>UI: Nhập số đo Rộng, Cao, mã vải chốt vào App
+    UI->>API: POST /api/v1/consultations/{id}/submit-specs
+    API->>DB: Tự động tạo Đơn hàng may đo dự thảo (Draft Order)
+    API-->>Customer: Gửi Zalo ZNS / SMS kèm Link báo giá chi tiết
+    Customer->>UI: Mở link xem bảng giá & Nhấn Đồng ý đặt cọc
+```

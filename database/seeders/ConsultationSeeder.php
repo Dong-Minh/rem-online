@@ -128,6 +128,13 @@ class ConsultationSeeder extends Seeder
 
         foreach ($sampleBookings as $bData) {
             try {
+                $bData['name'] = $bData['name'] ?? $bData['customer_name'];
+                $bData['content'] = $bData['content'] ?? ($bData['notes'] ?? 'Yêu cầu khảo sát và đo đạc rèm tận nhà.');
+                $bData['admin_note'] = $bData['admin_note'] ?? ($bData['admin_notes'] ?? null);
+                if (!empty($bData['curtain_types']) && is_array($bData['curtain_types'])) {
+                    $bData['curtain_type_interest'] = implode(', ', $bData['curtain_types']);
+                }
+
                 if ($hasCode) {
                     Consultation::updateOrCreate(
                         ['code' => $bData['code']],
@@ -136,12 +143,12 @@ class ConsultationSeeder extends Seeder
                 } else {
                     // Fallback if code column not yet present
                     Consultation::updateOrCreate(
-                        ['phone' => $bData['phone'], 'customer_name' => $bData['customer_name']],
+                        ['phone' => $bData['phone'], 'name' => $bData['name']],
                         $bData
                     );
                 }
             } catch (\Throwable $e) {
-                // Ignore seeder error to ensure deployment never blocks
+                \Illuminate\Support\Facades\Log::warning('ConsultationSeeder error: ' . $e->getMessage());
                 continue;
             }
         }

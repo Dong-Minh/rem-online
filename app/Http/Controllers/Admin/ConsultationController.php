@@ -48,8 +48,8 @@ class ConsultationController extends Controller
         // Thống kê KPI
         $stats = [
             'total' => Consultation::count(),
-            'pending' => Consultation::where('status', 'pending')->count(),
-            'measuring' => Consultation::whereIn('status', ['assigned', 'measuring'])->count(),
+            'pending' => Consultation::whereIn('status', ['pending', 'new'])->count(),
+            'measuring' => Consultation::whereIn('status', ['assigned', 'measuring', 'consulting', 'contacted'])->count(),
             'completed' => Consultation::whereIn('status', ['quoted', 'completed'])->count(),
         ];
 
@@ -73,7 +73,7 @@ class ConsultationController extends Controller
     public function update(Request $request, Consultation $consultation)
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,assigned,measuring,quoted,completed,cancelled',
+            'status' => 'required|in:pending,assigned,measuring,quoted,completed,cancelled,new,contacted',
             'assigned_staff_id' => 'nullable|exists:users,id',
             'admin_notes' => 'nullable|string|max:2000',
             'quoted_amount' => 'nullable|numeric|min:0',
@@ -81,6 +81,8 @@ class ConsultationController extends Controller
             'status.required' => 'Vui lòng chọn trạng thái lịch hẹn.',
             'assigned_staff_id.exists' => 'Nhân viên/Thợ được chọn không tồn tại.',
         ]);
+
+        $validated['admin_note'] = $validated['admin_notes'] ?? null;
 
         $consultation->update($validated);
 

@@ -13,6 +13,7 @@ class Consultation extends Model
         'code',
         'user_id',
         'customer_name',
+        'name',
         'phone',
         'email',
         'address',
@@ -22,11 +23,17 @@ class Consultation extends Model
         'preferred_date',
         'preferred_time_slot',
         'curtain_types',
+        'curtain_type_interest',
         'estimated_windows',
+        'estimated_width',
+        'estimated_height',
+        'preferred_contact_time',
         'notes',
+        'content',
         'status',
         'assigned_staff_id',
         'admin_notes',
+        'admin_note',
         'quoted_amount',
     ];
 
@@ -53,6 +60,46 @@ class Consultation extends Model
     }
 
     /**
+     * Accessor: Tên khách hàng (hỗ trợ cả customer_name và name)
+     */
+    public function getCustomerNameAttribute(): string
+    {
+        return $this->attributes['customer_name'] ?? $this->attributes['name'] ?? 'Khách hàng';
+    }
+
+    /**
+     * Accessor: name (hỗ trợ legacy)
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->attributes['name'] ?? $this->attributes['customer_name'] ?? 'Khách hàng';
+    }
+
+    /**
+     * Accessor: Ghi chú của khách (hỗ trợ cả notes và content)
+     */
+    public function getNotesAttribute(): ?string
+    {
+        return $this->attributes['notes'] ?? $this->attributes['content'] ?? null;
+    }
+
+    /**
+     * Accessor: content (hỗ trợ legacy)
+     */
+    public function getContentAttribute(): ?string
+    {
+        return $this->attributes['content'] ?? $this->attributes['notes'] ?? null;
+    }
+
+    /**
+     * Accessor: Ghi chú quản trị (hỗ trợ cả admin_notes và admin_note)
+     */
+    public function getAdminNotesAttribute(): ?string
+    {
+        return $this->attributes['admin_notes'] ?? $this->attributes['admin_note'] ?? null;
+    }
+
+    /**
      * Format khung giờ hẹn sang Tiếng Việt
      */
     public function getTimeSlotTextAttribute(): string
@@ -73,6 +120,9 @@ class Consultation extends Model
         if (is_array($this->curtain_types) && count($this->curtain_types) > 0) {
             return implode(', ', $this->curtain_types);
         }
+        if (!empty($this->curtain_type_interest)) {
+            return $this->curtain_type_interest;
+        }
         return 'Tất cả mẫu vải cao cấp';
     }
 
@@ -87,7 +137,7 @@ class Consultation extends Model
             $this->district,
             $this->province,
         ]);
-        return implode(', ', $parts);
+        return count($parts) > 0 ? implode(', ', $parts) : 'Chưa cập nhật địa chỉ';
     }
 
     /**
@@ -96,13 +146,14 @@ class Consultation extends Model
     public function getStatusBadgeAttribute(): string
     {
         $config = match ($this->status) {
-            'pending' => ['bg-warning text-dark', 'Chờ tiếp nhận', 'bi-hourglass-split'],
+            'pending', 'new' => ['bg-warning text-dark', 'Chờ tiếp nhận', 'bi-hourglass-split'],
             'assigned' => ['bg-info text-dark', 'Đã phân công thợ', 'bi-person-check'],
-            'measuring' => ['bg-primary text-white', 'Đang đo đạc tại nhà', 'bi-rulers'],
+            'measuring', 'consulting' => ['bg-primary text-white', 'Đang đo đạc tại nhà', 'bi-rulers'],
+            'contacted' => ['bg-info text-white', 'Đã liên hệ', 'bi-telephone-inbound'],
             'quoted' => ['bg-secondary text-white', 'Đã báo giá', 'bi-receipt'],
             'completed' => ['bg-success text-white', 'Đã chốt may đo', 'bi-check-circle-fill'],
             'cancelled' => ['bg-danger text-white', 'Đã hủy lịch', 'bi-x-circle-fill'],
-            default => ['bg-light text-dark border', $this->status, 'bi-info-circle'],
+            default => ['bg-light text-dark border', $this->status ?? 'Chờ tiếp nhận', 'bi-info-circle'],
         };
 
         return sprintf(
