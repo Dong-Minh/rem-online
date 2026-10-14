@@ -109,12 +109,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/chat/messages', [UserChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/user/chat/send', [UserChatController::class, 'send'])->name('user.chat.send');
     Route::get('/user/chat/messages', [UserChatController::class, 'getMessages'])->name('user.chat.messages');
-});
 
-// Chuyển hướng route wishlist cũ về trang chủ
-Route::get('/wishlist', function () {
-    return redirect()->route('home');
-})->name('wishlist.index');
+    // Danh sách yêu thích (Wishlist)
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/{product}/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+});
 
 // ==========================================
 // 4. AUTHENTICATED CUSTOMER ROUTES
