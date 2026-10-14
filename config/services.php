@@ -56,4 +56,12 @@ return [
         'ipn_url' => env('MOMO_IPN_URL'),
     ],
 
+    'vietqr' => [
+        'bank_id' => env('VIETQR_BANK_ID', 'MB'),
+        'bank_name' => env('VIETQR_BANK_NAME', 'MBBank (Ngân Hàng Quân Đội)'),
+        'account_no' => env('VIETQR_ACCOUNT_NO', '0988889999'),
+        'account_name' => env('VIETQR_ACCOUNT_NAME', 'DONG QUANG MINH'),
+        'template' => env('VIETQR_TEMPLATE', 'compact2'),
+    ],
+
 ];

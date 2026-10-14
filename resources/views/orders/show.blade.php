@@ -31,6 +31,21 @@
         </div>
     </div>
 
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5 text-success"></i>
+            <strong>{{ session('success') }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if (session('info'))
+        <div class="alert alert-info alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-info-circle-fill me-2 fs-5 text-primary"></i>
+            <strong>{{ session('info') }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <div class="row g-4">
         <!-- ========================================== -->
         <!-- 1. CỘT TRÁI: CHI TIẾT CÁC BỘ RÈM MAY ĐO    -->
@@ -54,6 +69,137 @@
                         </div>
                     </div>
                 </div>
+            @endif
+
+            <!-- ========================================== -->
+            <!-- KHỐI THANH TOÁN VIETQR (KHI CHỌN BANK_TRANSFER) -->
+            <!-- ========================================== -->
+            @if ($order->payment_method === 'bank_transfer')
+                @if ($order->payment_status !== 'paid' && $order->status !== 'cancelled')
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 border border-primary border-opacity-25" style="border: 2px solid #2563eb !important;">
+                        <div class="p-3 text-white d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);">
+                            <div>
+                                <span class="badge bg-white text-primary fw-bold small mb-1">
+                                    <i class="bi bi-qr-code-scan me-1"></i> VIETQR • NAPAS 24/7
+                                </span>
+                                <h5 class="fw-bold mb-0">Quét Mã VietQR Để Thanh Toán</h5>
+                            </div>
+                            <div>
+                                <span class="badge bg-warning text-dark fw-bold px-3 py-2 rounded-pill">
+                                    <i class="bi bi-clock-history me-1"></i> Chờ Quét Mã Chuyển Khoản
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-4 bg-white">
+                            <div class="row g-4 align-items-center">
+                                <!-- Cột 1: Mã QR Động -->
+                                <div class="col-12 col-md-5 text-center border-end">
+                                    @php
+                                        $bankId = config('services.vietqr.bank_id', 'MB');
+                                        $accountNo = config('services.vietqr.account_no', '0988889999');
+                                        $accountName = config('services.vietqr.account_name', 'DONG QUANG MINH');
+                                        $template = config('services.vietqr.template', 'compact2');
+                                        $qrAmount = (int) $order->total;
+                                        $qrInfo = urlencode($order->order_code);
+                                        $qrName = urlencode($accountName);
+                                        $vietQrUrl = "https://img.vietqr.io/image/{$bankId}-{$accountNo}-{$template}.png?amount={$qrAmount}&addInfo={$qrInfo}&accountName={$qrName}";
+                                    @endphp
+
+                                    <div class="d-inline-block p-2 bg-light rounded-3 border shadow-sm mb-2">
+                                        <img src="{{ $vietQrUrl }}" 
+                                             alt="Mã QR Chuyển Khoản VietQR" 
+                                             class="img-fluid rounded-2" 
+                                             style="max-width: 230px; width: 100%; display: block;"
+                                             loading="lazy">
+                                    </div>
+                                    <p class="small text-muted mb-0" style="font-size: 0.78rem;">
+                                        <i class="bi bi-phone me-1"></i> Mở App ngân hàng bất kỳ để quét mã
+                                    </p>
+                                </div>
+
+                                <!-- Cột 2: Thông tin chi tiết & Sao chép -->
+                                <div class="col-12 col-md-7">
+                                    <p class="small text-muted mb-3">
+                                        Quý khách có thể quét mã QR bên cạnh hoặc chuyển khoản thủ công theo thông tin chính xác dưới đây:
+                                    </p>
+
+                                    <div class="bg-light p-3 rounded-3 border mb-3">
+                                        <!-- Ngân hàng -->
+                                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                            <span class="text-muted small">Ngân hàng:</span>
+                                            <strong class="text-dark small">{{ config('services.vietqr.bank_name', 'MBBank (Ngân Hàng Quân Đội)') }}</strong>
+                                        </div>
+
+                                        <!-- Số tài khoản -->
+                                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                            <span class="text-muted small">Số tài khoản:</span>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <strong class="font-monospace text-primary fs-6" id="qr-acc-no">{{ $accountNo }}</strong>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.72rem;" onclick="copyText('qr-acc-no', 'Đã chép số tài khoản!')" title="Sao chép số tài khoản">
+                                                    <i class="bi bi-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Chủ tài khoản -->
+                                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                            <span class="text-muted small">Chủ tài khoản:</span>
+                                            <strong class="text-dark small text-uppercase">{{ $accountName }}</strong>
+                                        </div>
+
+                                        <!-- Số tiền -->
+                                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                            <span class="text-muted small">Số tiền:</span>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <strong class="text-danger fw-extrabold fs-6" id="qr-amount">{{ number_format($order->total, 0, ',', '.') }} đ</strong>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.72rem;" onclick="copyRawText('{{ (int)$order->total }}', 'Đã chép số tiền!')" title="Sao chép số tiền">
+                                                    <i class="bi bi-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Nội dung chuyển khoản -->
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted small">Nội dung CK:</span>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1" id="qr-memo">{{ $order->order_code }}</span>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.72rem;" onclick="copyRawText('{{ $order->order_code }}', 'Đã chép nội dung chuyển khoản!')" title="Sao chép nội dung">
+                                                    <i class="bi bi-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-warning py-2 px-3 small border-0 mb-3" style="font-size: 0.78rem;">
+                                        <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                                        Vui lòng giữ nguyên <strong>Nội dung chuyển khoản là {{ $order->order_code }}</strong> để đơn hàng được duyệt tự động.
+                                    </div>
+
+                                    <!-- Nút bấm xác nhận đã chuyển khoản -->
+                                    <form action="{{ route('orders.bank_transfer.confirm', $order->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Tôi Đã Chuyển Khoản Xong
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @elseif ($order->payment_status === 'paid')
+                    <div class="card border-0 shadow-sm rounded-4 p-4 text-white mb-4" style="background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="fs-2">
+                                <i class="bi bi-patch-check-fill"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">ĐÃ THANH TOÁN THÀNH CÔNG QUA VIETQR</h6>
+                                <p class="small text-white text-opacity-80 mb-0">Hệ thống đã xác nhận khoản thanh toán chuyển khoản của đơn hàng này. Xưởng may đang tiến hành đo cắt vải.</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             @endif
 
             <!-- Danh sách sản phẩm rèm trong đơn -->
@@ -242,4 +388,39 @@
         </div>
     </div>
 </div>
+
+<script>
+function copyText(elementId, message) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const text = el.innerText.trim();
+    copyRawText(text, message);
+}
+
+function copyRawText(text, message) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function() {
+            showToast(message || 'Đã sao chép vào bộ nhớ tạm!');
+        }).catch(function() {
+            fallbackCopy(text, message);
+        });
+    } else {
+        fallbackCopy(text, message);
+    }
+}
+
+function fallbackCopy(text, message) {
+    const tempInput = document.createElement("input");
+    tempInput.value = text;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand("copy");
+    document.body.removeChild(tempInput);
+    showToast(message || 'Đã sao chép vào bộ nhớ tạm!');
+}
+
+function showToast(msg) {
+    alert(msg);
+}
+</script>
 @endsection

@@ -309,4 +309,32 @@ class OrderController extends Controller
 
         return redirect()->route('orders.show', $order->id)->with('success', 'Đã hủy đơn hàng và hủy mã vận đơn GHN thành công.');
     }
+
+    /**
+     * Khách hàng xác nhận đã chuyển khoản qua VietQR
+     */
+    public function confirmBankTransfer(Order $order)
+    {
+        if (Auth::check() && $order->user_id && $order->user_id !== Auth::id()) {
+            abort(403, 'Bạn không có quyền thao tác trên đơn hàng này.');
+        }
+
+        if ($order->payment_status === 'paid') {
+            return back()->with('info', 'Đơn hàng này đã được xác nhận thanh toán trước đó.');
+        }
+
+        // Cập nhật transaction ghi nhận khách đã gửi xác nhận chuyển khoản
+        $txn = \App\Models\PaymentTransaction::where('order_id', $order->id)
+            ->where('gateway', 'bank_transfer')
+            ->latest()
+            ->first();
+
+        if ($txn) {
+            $txn->update([
+                'message' => 'Khách hàng đã bấm xác nhận chuyển khoản VietQR lúc ' . now()->format('H:i d/m/Y') . '. Đang chờ kế toán đối soát sao kê.',
+            ]);
+        }
+
+        return back()->with('success', '🎉 Đã gửi thông báo xác nhận chuyển khoản thành công! Bộ phận kế toán & xưởng may sẽ kiểm tra sao kê ngân hàng và tiến hành may đo rèm cho bạn.');
+    }
 }

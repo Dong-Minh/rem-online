@@ -239,7 +239,7 @@
                             <span><i class="bi bi-qr-code text-primary me-2"></i> Chuyển khoản ngân hàng (Quét mã VietQR)</span>
                             <span class="badge bg-primary-subtle text-primary">Tự động 24/7</span>
                         </label>
-                        <small class="text-muted d-block ps-4 mt-1">Quét mã QR qua ứng dụng ngân hàng MBBank/Vietcombank nhanh chóng.</small>
+                        <small class="text-muted d-block ps-4 mt-1">Hệ thống tự động tạo mã VietQR chuẩn NAPAS kèm số tiền và mã đơn để bạn quét thanh toán ngay sau khi đặt hàng.</small>
                     </div>
                 </div>
             </div>

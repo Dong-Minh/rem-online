@@ -86,6 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/orders', [OrderController::class, 'orderHistory'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order}/confirm-bank-transfer', [OrderController::class, 'confirmBankTransfer'])->name('orders.bank_transfer.confirm');
 
     // Thanh toán qua Cổng MoMo
     Route::get('/orders/{order}/start-momo', [MomoController::class, 'start'])->name('orders.momo.start');
